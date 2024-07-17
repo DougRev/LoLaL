@@ -1,4 +1,4 @@
-import { createContext, useReducer } from 'react';
+import { createContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -7,15 +7,14 @@ const authReducer = (state, action) => {
   switch (action.type) {
     case 'REGISTER_SUCCESS':
     case 'LOGIN_SUCCESS':
-      localStorage.setItem('token', action.payload.token);
+    case 'GOOGLE_LOGIN_SUCCESS':
       return {
         ...state,
-        ...action.payload,
+        token: action.payload.token,
         isAuthenticated: true,
         loading: false,
       };
     case 'LOGOUT':
-      localStorage.removeItem('token');
       return {
         ...state,
         token: null,
@@ -30,7 +29,7 @@ const authReducer = (state, action) => {
 
 const AuthProvider = ({ children }) => {
   const initialState = {
-    token: localStorage.getItem('token'),
+    token: null,
     isAuthenticated: null,
     loading: true,
     user: null,
@@ -50,10 +49,39 @@ const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
   };
 
-  const logout = () => dispatch({ type: 'LOGOUT' });
+  const googleLogin = async () => {
+    const res = await axios.get('/api/checkAuth', { withCredentials: true });
+    if (res.data.token) {
+      dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token: res.data.token } });
+    } else {
+      dispatch({ type: 'LOGOUT' });
+    }
+  };
+  const logout = async () => {
+    await axios.get('/api/logout', { withCredentials: true });
+    dispatch({ type: 'LOGOUT' });
+    window.location.href = '/'; 
+  };
+  
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await axios.get('/api/checkAuth', { withCredentials: true });
+        if (res.data.token) {
+          dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token: res.data.token } });
+        } else {
+          dispatch({ type: 'LOGOUT' });
+        }
+      } catch (err) {
+        dispatch({ type: 'LOGOUT' });
+      }
+    };
+    checkAuth();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, register, login, logout }}>
+    <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

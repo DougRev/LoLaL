@@ -1,9 +1,13 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 
-exports.register = async (req, res) => {
+dotenv.config();
+
+const register = async (req, res) => {
   const { name, email, password } = req.body;
+
   try {
     let user = await User.findOne({ email });
     if (user) {
@@ -21,19 +25,30 @@ exports.register = async (req, res) => {
 
     await user.save();
 
-    const payload = { user: { id: user.id } };
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
-    });
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token });
+      }
+    );
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 };
 
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     let user = await User.findOne({ email });
     if (!user) {
@@ -45,13 +60,25 @@ exports.login = async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
-    const payload = { user: { id: user.id } };
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
-    });
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token });
+      }
+    );
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 };
+
+module.exports = { register, login };

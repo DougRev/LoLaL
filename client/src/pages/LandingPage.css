@@ -28,3 +28,17 @@
     background: #0056b3;
   }
   
+  .google-button {
+    margin-top: 1rem;
+    background: #4285F4;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .google-button:hover {
+    background: #357ae8;
+  }
+  
