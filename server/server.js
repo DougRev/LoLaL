@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const auth = require('./middleware/auth'); // Correct path
 require('./config/passport');
 
-dotenv.config();
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const app = express();
 
@@ -43,7 +43,8 @@ app.get('/api/protected', auth, (req, res) => {
 
 app.get('/api/checkAuth', auth, (req, res) => {
     res.json({ token: req.cookies.token });
-});
+  });
+  
   
 
 app.get('/api/logout', (req, res) => {
