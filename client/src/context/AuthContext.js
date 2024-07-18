@@ -45,7 +45,6 @@ const AuthProvider = ({ children }) => {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['x-auth-token'] = res.data.token;
       const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': res.data.token } });
-      console.log('User registered:', userRes.data);
       dispatch({ type: 'REGISTER_SUCCESS', payload: { token: res.data.token, user: userRes.data } });
     } catch (error) {
       console.error('Registration error:', error);
@@ -59,7 +58,6 @@ const AuthProvider = ({ children }) => {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['x-auth-token'] = res.data.token;
       const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': res.data.token } });
-      console.log('User logged in:', userRes.data);
       dispatch({ type: 'LOGIN_SUCCESS', payload: { token: res.data.token, user: userRes.data } });
     } catch (error) {
       console.error('Login error:', error);
@@ -72,7 +70,6 @@ const AuthProvider = ({ children }) => {
         localStorage.setItem('token', token);
         axios.defaults.headers.common['x-auth-token'] = token;
         const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': token } });
-        console.log('getUser response:', userRes.data);
         dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token, user: userRes.data } });
       } else {
         dispatch({ type: 'LOGOUT' });
@@ -102,7 +99,6 @@ const AuthProvider = ({ children }) => {
         axios.defaults.headers.common['x-auth-token'] = token;
         try {
           const res = await axios.get('/api/users/user');
-          console.log('fetchUser response:', res.data);
           if (res.data) {
             dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: res.data } });
           }

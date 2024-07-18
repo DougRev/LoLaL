@@ -25,7 +25,6 @@ const Navbar = () => {
         {isOpen ? '✖' : '☰'}
       </div>
       <ul className="nav-links">
-        <li><Link to="/" onClick={toggleNavbar}>Landing Page</Link></li>
         {isAuthenticated && (
           <>
             <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>

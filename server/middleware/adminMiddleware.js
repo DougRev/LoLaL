@@ -1,10 +1,13 @@
-const adminMiddleware = (req, res, next) => {
+const adminAuth = (req, res, next) => {
+    console.log('Admin Middleware: Checking user role:', req.user);
     if (req.user && req.user.role === 'admin') {
+      console.log('Admin Middleware: User is admin, proceeding to next middleware');
       next();
     } else {
-      res.status(403).json({ message: 'Forbidden: Admins only' });
+      console.log('Admin Middleware: Access denied, user is not admin');
+      res.status(403).json({ msg: 'Access denied: Admins only' });
     }
   };
   
-  module.exports = adminMiddleware;
+  module.exports = adminAuth;
   

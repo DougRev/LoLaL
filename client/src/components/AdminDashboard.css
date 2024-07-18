@@ -1,0 +1,70 @@
+.admin-dashboard {
+    margin: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .admin-dashboard h1 {
+    text-align: center;
+    color: #333;
+  }
+  
+  .admin-dashboard table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+  }
+  
+  .admin-dashboard table th, 
+  .admin-dashboard table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .admin-dashboard table th {
+    background-color: #f4f4f4;
+  }
+  
+  .admin-dashboard table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .admin-dashboard button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Added transition for smooth hover effect */
+  }
+  
+  .admin-dashboard button.edit-btn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .admin-dashboard button.edit-btn:hover {
+    background-color: #26702a; /* Darker shade for hover effect */
+  }
+  
+  .admin-dashboard button.delete-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .admin-dashboard button.delete-btn:hover {
+    background-color: #92100e; /* Darker shade for hover effect */
+  }
+  
+  @media (max-width: 768px) {
+    .admin-dashboard table {
+      font-size: 16px;
+    }
+    
+    .admin-dashboard table th, 
+    .admin-dashboard table td {
+      padding: 10px;
+    }
+  }
+  

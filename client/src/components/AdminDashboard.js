@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
@@ -12,10 +13,14 @@ const AdminDashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('/api/admin/users');
+      const token = localStorage.getItem('token');
+      console.log('AdminDashboard: Sending token:', token);
+      const response = await axios.get('/api/admin/users', {
+        headers: { 'x-auth-token': token }
+      });
       setUsers(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('AdminDashboard: Error fetching users:', error);
     }
   };
 
@@ -26,26 +31,32 @@ const AdminDashboard = () => {
 
   const handleSaveRole = async (id) => {
     try {
-      await axios.put(`/api/admin/users/${id}`, { role: editUserRole });
+      const token = localStorage.getItem('token');
+      await axios.put(`/api/admin/users/${id}`, { role: editUserRole }, {
+        headers: { 'x-auth-token': token }
+      });
       setEditUserId(null);
       setEditUserRole('');
       fetchUsers();
     } catch (error) {
-      console.error('Error updating user role:', error);
+      console.error('AdminDashboard: Error updating user role:', error);
     }
   };
 
   const handleDeleteUser = async (id) => {
     try {
-      await axios.delete(`/api/admin/users/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/admin/users/${id}`, {
+        headers: { 'x-auth-token': token }
+      });
       fetchUsers();
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('AdminDashboard: Error deleting user:', error);
     }
   };
 
   return (
-    <div>
+    <div className="admin-dashboard">
       <h1>Admin Dashboard</h1>
       <table>
         <thead>
@@ -74,11 +85,11 @@ const AdminDashboard = () => {
               </td>
               <td>
                 {editUserId === user._id ? (
-                  <button onClick={() => handleSaveRole(user._id)}>Save</button>
+                  <button className="edit-btn" onClick={() => handleSaveRole(user._id)}>Save</button>
                 ) : (
-                  <button onClick={() => handleEditRole(user._id, user.role)}>Edit</button>
+                  <button className="edit-btn" onClick={() => handleEditRole(user._id, user.role)}>Edit</button>
                 )}
-                <button onClick={() => handleDeleteUser(user._id)}>Delete</button>
+                <button className="delete-btn" onClick={() => handleDeleteUser(user._id)}>Delete</button>
               </td>
             </tr>
           ))}

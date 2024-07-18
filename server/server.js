@@ -4,8 +4,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
-const session = require('express-session'); // Add this line
+const session = require('express-session'); 
 const auth = require('./middleware/auth');
+const adminAuth = require('./middleware/adminMiddleware');
 require('./config/passport');
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -19,7 +20,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use(session({
-  secret: 'asdf9823bb3ublifu8asdkGFSDIUVY3b12bsdfafa445DSF', 
+  secret: process.env.JWT_SECRET, 
   resave: false,
   saveUninitialized: true,
   cookie: { secure: process.env.NODE_ENV === 'production' }
@@ -34,7 +35,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 // Routes
 app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/admin', auth, adminAuth, require('./routes/adminRoutes')); // Secured admin routes
 
 // Google OAuth Routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -42,7 +43,7 @@ app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'em
 app.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
   const token = req.user.token;
   res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-  res.redirect(`http://localhost:3000/dashboard?token=${token}`); // pass token as a query parameter
+  res.redirect(`http://localhost:3000/dashboard?token=${token}`); 
 });
 
 app.get('/api/protected', auth, (req, res) => {

@@ -5,6 +5,18 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+const generateToken = (user) => {
+  const payload = {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  };
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+};
+
 const register = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -25,21 +37,8 @@ const register = async (req, res) => {
 
     await user.save();
 
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
-    );
+    const token = generateToken(user);
+    res.json({ token });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -60,21 +59,8 @@ const login = async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
-    );
+    const token = generateToken(user);
+    res.json({ token });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -83,9 +69,9 @@ const login = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    console.log('Fetching user with ID:', req.user.id);  // Log user ID
+    console.log('Fetching user with ID:', req.user.id);
     const user = await User.findById(req.user.id).select('-password');
-    console.log('Fetched user:', user);  // Log fetched user
+    console.log('Fetched user:', user);
     res.json(user);
   } catch (err) {
     console.error('Error fetching user:', err);
