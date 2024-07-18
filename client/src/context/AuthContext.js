@@ -13,6 +13,7 @@ const authReducer = (state, action) => {
         token: action.payload.token,
         isAuthenticated: true,
         loading: false,
+        user: action.payload.user,
       };
     case 'LOGOUT':
       return {
@@ -29,7 +30,7 @@ const authReducer = (state, action) => {
 
 const AuthProvider = ({ children }) => {
   const initialState = {
-    token: null,
+    token: localStorage.getItem('token'),
     isAuthenticated: null,
     loading: true,
     user: null,
@@ -39,45 +40,89 @@ const AuthProvider = ({ children }) => {
 
   const register = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
-    const res = await axios.post('/api/users/register', formData, config);
-    dispatch({ type: 'REGISTER_SUCCESS', payload: res.data });
+    try {
+      const res = await axios.post('/api/users/register', formData, config);
+      localStorage.setItem('token', res.data.token);
+      axios.defaults.headers.common['x-auth-token'] = res.data.token;
+      const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': res.data.token } });
+      console.log('User registered:', userRes.data);
+      dispatch({ type: 'REGISTER_SUCCESS', payload: { token: res.data.token, user: userRes.data } });
+    } catch (error) {
+      console.error('Registration error:', error);
+    }
   };
 
   const login = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
-    const res = await axios.post('/api/users/login', formData, config);
-    dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+    try {
+      const res = await axios.post('/api/users/login', formData, config);
+      localStorage.setItem('token', res.data.token);
+      axios.defaults.headers.common['x-auth-token'] = res.data.token;
+      const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': res.data.token } });
+      console.log('User logged in:', userRes.data);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { token: res.data.token, user: userRes.data } });
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
-  const googleLogin = async () => {
-    const res = await axios.get('/api/checkAuth', { withCredentials: true });
-    if (res.data.token) {
-      dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token: res.data.token } });
-    } else {
+  const googleLogin = async (token) => {
+    try {
+      if (token) {
+        localStorage.setItem('token', token);
+        axios.defaults.headers.common['x-auth-token'] = token;
+        const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': token } });
+        console.log('getUser response:', userRes.data);
+        dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token, user: userRes.data } });
+      } else {
+        dispatch({ type: 'LOGOUT' });
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
       dispatch({ type: 'LOGOUT' });
     }
   };
+
   const logout = async () => {
-    await axios.get('/api/logout', { withCredentials: true });
-    dispatch({ type: 'LOGOUT' });
-    window.location.href = '/'; 
+    try {
+      await axios.get('/api/logout', { withCredentials: true });
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['x-auth-token'];
+      dispatch({ type: 'LOGOUT' });
+      window.location.href = '/'; 
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
-  
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get('/api/checkAuth', { withCredentials: true });
-        if (res.data.token) {
-          dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token: res.data.token } });
-        } else {
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        axios.defaults.headers.common['x-auth-token'] = token;
+        try {
+          const res = await axios.get('/api/users/user');
+          console.log('fetchUser response:', res.data);
+          if (res.data) {
+            dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: res.data } });
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
           dispatch({ type: 'LOGOUT' });
         }
-      } catch (err) {
+      } else {
         dispatch({ type: 'LOGOUT' });
       }
     };
-    checkAuth();
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      googleLogin(token);
+    }
   }, []);
 
   return (

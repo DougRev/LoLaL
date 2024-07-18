@@ -81,4 +81,16 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const getUser = async (req, res) => {
+  try {
+    console.log('Fetching user with ID:', req.user.id);  // Log user ID
+    const user = await User.findById(req.user.id).select('-password');
+    console.log('Fetched user:', user);  // Log fetched user
+    res.json(user);
+  } catch (err) {
+    console.error('Error fetching user:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+module.exports = { register, login, getUser };

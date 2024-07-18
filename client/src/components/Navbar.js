@@ -5,7 +5,7 @@ import './Navbar.css';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useContext(AuthContext);
+  const { user, logout, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,6 +17,8 @@ const Navbar = () => {
     setIsOpen(!isOpen);
   };
 
+  console.log('User in Navbar:', user);
+
   return (
     <div className={`navbar ${isOpen ? 'open' : ''}`}>
       <div className="hamburger" onClick={toggleNavbar}>
@@ -24,8 +26,21 @@ const Navbar = () => {
       </div>
       <ul className="nav-links">
         <li><Link to="/" onClick={toggleNavbar}>Landing Page</Link></li>
-        <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
-        <li><button onClick={handleLogout}>Logout</button></li>
+        {isAuthenticated && (
+          <>
+            <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
+            {user && user.role === 'admin' && (
+              <li><Link to="/admin" onClick={toggleNavbar}>Admin Dashboard</Link></li>
+            )}
+            <li><button onClick={handleLogout}>Logout</button></li>
+          </>
+        )}
+        {!isAuthenticated && (
+          <>
+            <li><Link to="/login" onClick={toggleNavbar}>Login</Link></li>
+            <li><Link to="/register" onClick={toggleNavbar}>Register</Link></li>
+          </>
+        )}
       </ul>
     </div>
   );

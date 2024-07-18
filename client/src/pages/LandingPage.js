@@ -7,7 +7,7 @@ import './LandingPage.css';
 
 const LandingPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const { googleLogin, isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const toggleForm = () => {
@@ -21,12 +21,8 @@ const LandingPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
-    } else {
-      googleLogin().catch(() => {
-        // handle error or ignore if unauthenticated
-      });
     }
-  }, [googleLogin, isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="landing-container">
