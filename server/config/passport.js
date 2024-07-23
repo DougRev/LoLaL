@@ -31,8 +31,8 @@ passport.use(new GoogleStrategy({
   
       const payload = { user: { id: user.id, name: user.name, email: user.email, role: user.role } }; // Ensure payload has user property
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-      console.log('Google OAuth user:', user);  // Log user data
-      console.log('Google OAuth token:', token);  // Log token
+      console.log('Google OAuth user:', user);  
+      console.log('Google OAuth token:', token);
       return done(null, { token });
     } catch (err) {
       return done(err, false);

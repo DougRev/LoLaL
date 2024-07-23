@@ -15,6 +15,11 @@ const authReducer = (state, action) => {
         loading: false,
         user: action.payload.user,
       };
+    case 'UPDATE_USER':
+      return {
+        ...state,
+        user: action.payload.user,
+      };
     case 'LOGOUT':
       return {
         ...state,
@@ -92,6 +97,10 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (user) => {
+    dispatch({ type: 'UPDATE_USER', payload: { user } });
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
@@ -122,7 +131,7 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout }}>
+    <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

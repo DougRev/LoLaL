@@ -1,15 +1,28 @@
-import React, { useContext } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import React, { useContext, useState, useEffect } from 'react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import Navbar from './components/Navbar';
 import AdminDashboard from './components/AdminDashboard';
+import FactionSelection from './components/FactionSelection';
 import './App.css';
 
 const AppContent = () => {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, user } = useContext(AuthContext);
+  const [factionSelected, setFactionSelected] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated && user && !user.faction) {
+      setFactionSelected(false);
+      navigate('/select-faction');
+    } else if (isAuthenticated && user && user.faction) {
+      setFactionSelected(true);
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <>
@@ -18,8 +31,9 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={factionSelected ? <Dashboard /> : <FactionSelection setFactionSelected={setFactionSelected} />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/select-faction" element={<FactionSelection setFactionSelected={setFactionSelected} />} />
         </Routes>
       </div>
     </>

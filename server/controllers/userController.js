@@ -2,6 +2,8 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const factions = require('../models/Faction');
+const Kingdom = require('../models/Kingdom');
 
 dotenv.config();
 
@@ -21,8 +23,11 @@ const register = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
+    console.log('Register request received:', { name, email, password });
+
     let user = await User.findOne({ email });
     if (user) {
+      console.log('User already exists');
       return res.status(400).json({ msg: 'User already exists' });
     }
 
@@ -30,6 +35,7 @@ const register = async (req, res) => {
       name,
       email,
       password,
+      gold: 100,
     });
 
     const salt = await bcrypt.genSalt(10);
@@ -37,13 +43,25 @@ const register = async (req, res) => {
 
     await user.save();
 
+    // Create a new kingdom for the user
+    const kingdom = new Kingdom({
+      user: user._id,
+      name: `${user.name}'s Kingdom`,
+    });
+
+    await kingdom.save();
+
+    user.kingdom = kingdom._id;
+    await user.save();
+
     const token = generateToken(user);
     res.json({ token });
   } catch (err) {
-    console.error(err.message);
+    console.error('Error during registration:', err.message);
     res.status(500).send('Server error');
   }
 };
+
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -79,4 +97,45 @@ const getUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUser };
+const setFaction = async (req, res) => {
+  const { factionName } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(400).json({ msg: 'User not found' });
+    }
+
+    const faction = factions.find(f => f.name === factionName);
+    if (!faction) {
+      return res.status(400).json({ msg: 'Invalid faction' });
+    }
+
+    user.faction = factionName;
+    await user.save();
+
+    // Create a new kingdom for the user if not already created
+    if (!user.kingdom) {
+      const kingdom = new Kingdom({
+        user: user._id,
+        name: `${user.name}'s Kingdom`,
+      });
+
+      await kingdom.save();
+      user.kingdom = kingdom._id;
+      await user.save();
+    }
+
+    res.status(200).json({ msg: 'Faction selected successfully', user });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+
+const getFactions = (req, res) => {
+  res.json(factions);
+};
+
+module.exports = { register, login, getUser, setFaction, getFactions };
