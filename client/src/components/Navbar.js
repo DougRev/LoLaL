@@ -13,6 +13,11 @@ const Navbar = () => {
     navigate('/');
   };
 
+  const handleAdminNavigate = () => {
+    setIsOpen(false);
+    navigate('/admin');
+  };
+
   const toggleNavbar = () => {
     setIsOpen(!isOpen);
   };
@@ -29,7 +34,7 @@ const Navbar = () => {
           <>
             <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
             {user && user.role === 'admin' && (
-              <li><Link to="/admin" onClick={toggleNavbar}>Admin Dashboard</Link></li>
+              <li><button onClick={handleAdminNavigate}>Admin Dashboard</button></li>
             )}
             <li><button onClick={handleLogout}>Logout</button></li>
           </>

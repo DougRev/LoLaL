@@ -5,12 +5,14 @@ import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import Navbar from './components/Navbar';
-import AdminDashboard from './components/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import FactionSelection from './components/FactionSelection';
+import Unauthorized from './components/Unauthorized';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 const AppContent = () => {
-  const { isAuthenticated, user } = useContext(AuthContext);
+  const { isAuthenticated, user, loading } = useContext(AuthContext);
   const [factionSelected, setFactionSelected] = useState(false);
   const navigate = useNavigate();
 
@@ -20,9 +22,12 @@ const AppContent = () => {
       navigate('/select-faction');
     } else if (isAuthenticated && user && user.faction) {
       setFactionSelected(true);
-      navigate('/dashboard');
     }
   }, [isAuthenticated, user, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -32,8 +37,15 @@ const AppContent = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={factionSelected ? <Dashboard /> : <FactionSelection setFactionSelected={setFactionSelected} />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={
+            <>
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            </>
+          } />
           <Route path="/select-faction" element={<FactionSelection setFactionSelected={setFactionSelected} />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
       </div>
     </>

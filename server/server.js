@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session'); 
 const auth = require('./middleware/auth');
 const adminAuth = require('./middleware/adminMiddleware');
+const unitRoutes = require('./routes/unitRoutes');
+
 require('./config/passport');
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -36,6 +38,8 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 // Routes
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/admin', auth, adminAuth, require('./routes/adminRoutes')); // Secured admin routes
+app.use('/api/units', unitRoutes);
+app.use('/api/kingdoms', require('./routes/kingdomRoutes'));
 
 // Google OAuth Routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

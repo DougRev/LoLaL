@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import './AdminDashboard.css';
+//import './UserManagement.css';
 
-const AdminDashboard = () => {
+const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [editUserId, setEditUserId] = useState(null);
   const [editUserRole, setEditUserRole] = useState('');
@@ -14,13 +14,14 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('AdminDashboard: Sending token:', token);
+      console.log('UserManagement: Sending token:', token);
       const response = await axios.get('/api/admin/users', {
         headers: { 'x-auth-token': token }
       });
       setUsers(response.data);
+      console.log('Fetched users:', response.data);
     } catch (error) {
-      console.error('AdminDashboard: Error fetching users:', error);
+      console.error('UserManagement: Error fetching users:', error);
     }
   };
 
@@ -39,7 +40,7 @@ const AdminDashboard = () => {
       setEditUserRole('');
       fetchUsers();
     } catch (error) {
-      console.error('AdminDashboard: Error updating user role:', error);
+      console.error('UserManagement: Error updating user role:', error);
     }
   };
 
@@ -51,13 +52,13 @@ const AdminDashboard = () => {
       });
       fetchUsers();
     } catch (error) {
-      console.error('AdminDashboard: Error deleting user:', error);
+      console.error('UserManagement: Error deleting user:', error);
     }
   };
 
   return (
-    <div className="admin-dashboard">
-      <h1>Admin Dashboard</h1>
+    <div className="user-management">
+      <h2>User Management</h2>
       <table>
         <thead>
           <tr>
@@ -99,4 +100,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default UserManagement;

@@ -1,0 +1,12 @@
+const mongoose = require('mongoose');
+
+const unitSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  cost: { type: Number, required: true },
+  attack: { type: Number, required: true },
+  defense: { type: Number, required: true },
+});
+
+const Unit = mongoose.model('Unit', unitSchema);
+
+module.exports = Unit;

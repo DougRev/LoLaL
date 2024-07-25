@@ -91,7 +91,7 @@ const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['x-auth-token'];
       dispatch({ type: 'LOGOUT' });
-      window.location.href = '/'; 
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -101,24 +101,25 @@ const AuthProvider = ({ children }) => {
     dispatch({ type: 'UPDATE_USER', payload: { user } });
   };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        axios.defaults.headers.common['x-auth-token'] = token;
-        try {
-          const res = await axios.get('/api/users/user');
-          if (res.data) {
-            dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: res.data } });
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          dispatch({ type: 'LOGOUT' });
+  const fetchUser = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['x-auth-token'] = token;
+      try {
+        const res = await axios.get('/api/users/user');
+        if (res.data) {
+          dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: res.data } });
         }
-      } else {
+      } catch (error) {
+        console.error('Error fetching user data:', error);
         dispatch({ type: 'LOGOUT' });
       }
-    };
+    } else {
+      dispatch({ type: 'LOGOUT' });
+    }
+  };
+
+  useEffect(() => {
     fetchUser();
   }, []);
 
@@ -129,6 +130,8 @@ const AuthProvider = ({ children }) => {
       googleLogin(token);
     }
   }, []);
+
+  console.log('AuthContext state:', state);
 
   return (
     <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout, updateUser }}>

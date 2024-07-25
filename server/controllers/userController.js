@@ -35,7 +35,6 @@ const register = async (req, res) => {
       name,
       email,
       password,
-      gold: 100,
     });
 
     const salt = await bcrypt.genSalt(10);
@@ -47,11 +46,12 @@ const register = async (req, res) => {
     const kingdom = new Kingdom({
       user: user._id,
       name: `${user.name}'s Kingdom`,
+      gold: 100,  // Initial gold assigned to the kingdom
     });
 
     await kingdom.save();
 
-    user.kingdom = kingdom._id;
+    user.kingdom = kingdom._id.toString();
     await user.save();
 
     const token = generateToken(user);
@@ -67,7 +67,7 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email }).populate('kingdom');
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
@@ -88,7 +88,12 @@ const login = async (req, res) => {
 const getUser = async (req, res) => {
   try {
     console.log('Fetching user with ID:', req.user.id);
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id).select('-password').populate('kingdom');
+    
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
     console.log('Fetched user:', user);
     res.json(user);
   } catch (err) {
@@ -119,10 +124,11 @@ const setFaction = async (req, res) => {
       const kingdom = new Kingdom({
         user: user._id,
         name: `${user.name}'s Kingdom`,
+        gold: 100,  // Initial gold assigned to the kingdom
       });
 
       await kingdom.save();
-      user.kingdom = kingdom._id;
+      user.kingdom = kingdom._id.toString();
       await user.save();
     }
 
@@ -133,9 +139,23 @@ const setFaction = async (req, res) => {
   }
 };
 
-
 const getFactions = (req, res) => {
   res.json(factions);
 };
 
-module.exports = { register, login, getUser, setFaction, getFactions };
+const getUserArmy = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).populate({
+      path: 'kingdom',
+      populate: { path: 'army.unit' }
+    });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ army: user.kingdom.army });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { register, login, getUser, setFaction, getFactions, getUserArmy };
