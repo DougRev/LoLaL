@@ -54,6 +54,28 @@ const MyArmy = ({ triggerFetch }) => {
     }
   };
 
+  const handleReassign = async (unitId, currentAssignment, newAssignment) => {
+    if (!user || !assignQuantity) return;
+
+    try {
+      const quantity = parseInt(assignQuantity, 10);
+      if (isNaN(quantity) || quantity <= 0) return;
+
+      console.log('Reassigning unit:', unitId, 'from', currentAssignment, 'to', newAssignment, 'Quantity:', quantity);
+      const response = await axios.post('/api/units/reassign', {
+        userId: user._id,
+        unitId,
+        currentAssignment,
+        newAssignment,
+        quantity,
+      });
+      console.log('Reassign Response:', response.data);
+      fetchArmy(); // Refetch the army to get updated data
+    } catch (error) {
+      console.error('Error reassigning unit:', error);
+    }
+  };
+
   const renderUnitList = (units, assignment) => (
     <ul>
       {units
@@ -71,6 +93,19 @@ const MyArmy = ({ triggerFetch }) => {
                 />
                 <button onClick={() => handleAssign(unit.unit._id, 'offensive')}>Assign to Offensive</button>
                 <button onClick={() => handleAssign(unit.unit._id, 'defensive')}>Assign to Defensive</button>
+              </div>
+            )}
+            {assignment !== 'unassigned' && (
+              <div>
+                <input
+                  type="number"
+                  placeholder="Reassign Quantity"
+                  value={assignQuantity}
+                  onChange={(e) => setAssignQuantity(e.target.value)}
+                />
+                <button onClick={() => handleReassign(unit.unit._id, assignment, 'offensive')}>Reassign to Offensive</button>
+                <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')}>Reassign to Defensive</button>
+                <button onClick={() => handleReassign(unit.unit._id, assignment, 'unassigned')}>Unassign</button>
               </div>
             )}
           </li>

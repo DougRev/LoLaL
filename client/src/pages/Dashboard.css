@@ -1,0 +1,7 @@
+#main-stats {
+    display: inline-flex;
+}
+
+#main-stats p {
+    margin-right: 5px;
+}

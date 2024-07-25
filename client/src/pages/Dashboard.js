@@ -4,6 +4,7 @@ import Units from '../components/Units';
 import KingdomInfo from '../components/KingdomInfo';
 import MyArmy from '../components/MyArmy';
 import axios from 'axios';
+import './Dashboard.css';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -65,12 +66,11 @@ const Dashboard = () => {
       <h1>Kingdom Dashboard</h1>
       <p>Welcome to your dashboard, {user.name}!</p>
       <p>Your faction: {user.faction}</p>
-      {kingdom && (
-        <KingdomInfo
-          gold={kingdom.gold}
-          offensiveStats={kingdom.offensiveGear}
-        />
-      )}
+      <div id='main-stats'>
+        <p><strong>Gold: </strong>{kingdom.gold}</p>
+        <p><strong>Offense: </strong> {kingdom.offensiveStats}</p>
+        <p><strong>Defense: </strong>{kingdom.defensiveStats}</p>
+      </div>
       <MyArmy triggerFetch={triggerFetch} />
       <Units units={units} onUnitPurchase={handleUnitPurchase} onUnitAssign={handleUnitAssign} />
     </div>
