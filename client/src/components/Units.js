@@ -6,6 +6,7 @@ const Units = ({ units, onUnitPurchase }) => {
   const { user } = useContext(AuthContext);
   const [quantity, setQuantity] = useState(1);
   const [selectedUnit, setSelectedUnit] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     console.log('Units prop updated:', units);
@@ -15,6 +16,7 @@ const Units = ({ units, onUnitPurchase }) => {
     if (!selectedUnit || !user) return;
 
     try {
+      setError(null); // Clear previous errors
       console.log('Purchasing unit:', selectedUnit, 'Quantity:', quantity);
       const response = await axios.post('http://localhost:3000/api/units/purchase', {
         userId: user._id,
@@ -30,6 +32,11 @@ const Units = ({ units, onUnitPurchase }) => {
       setQuantity(1);
     } catch (error) {
       console.error('Error purchasing unit:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('An error occurred while purchasing the unit.');
+      }
     }
   };
 
@@ -41,6 +48,7 @@ const Units = ({ units, onUnitPurchase }) => {
   return (
     <div>
       <h2>Units for Sale</h2>
+      {error && <div className="error-message">{error}</div>}
       <ul>
         {units.length > 0 ? (
           units.map((unit, index) => (

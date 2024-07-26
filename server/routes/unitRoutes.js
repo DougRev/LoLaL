@@ -71,34 +71,34 @@ router.delete('/:id', async (req, res) => {
 
 // Purchase units
 router.post('/purchase', async (req, res) => {
-  const { userId, unitId, quantity } = req.body;
-  try {
-    const user = await User.findById(userId).populate('kingdom');
-    const unit = await Unit.findById(unitId);
-
-    if (!user || !unit || !user.kingdom) {
-      return res.status(404).json({ message: 'User, Unit, or Kingdom not found' });
+    const { userId, unitId, quantity } = req.body;
+    try {
+      const user = await User.findById(userId).populate('kingdom');
+      const unit = await Unit.findById(unitId);
+  
+      if (!user || !unit || !user.kingdom) {
+        return res.status(404).json({ message: 'User, Unit, or Kingdom not found' });
+      }
+  
+      const kingdom = user.kingdom;
+      const cost = unit.cost * parseInt(quantity, 10);
+      if (kingdom.gold < cost) {
+        return res.status(400).json({ message: 'Not enough gold' });
+      }
+  
+      kingdom.gold -= cost;
+      const existingUnit = kingdom.army.find((u) => u.unit.toString() === unitId && u.assignedTo === 'unassigned');
+      if (existingUnit) {
+        existingUnit.quantity += parseInt(quantity, 10);
+      } else {
+        kingdom.army.push({ unit: unitId, quantity: parseInt(quantity, 10), assignedTo: 'unassigned' });
+      }
+  
+      await kingdom.save();
+      res.status(200).json(kingdom);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-
-    const kingdom = user.kingdom;
-    const cost = unit.cost * parseInt(quantity, 10);
-    if (kingdom.gold < cost) {
-      return res.status(400).json({ message: 'Not enough gold' });
-    }
-
-    kingdom.gold -= cost;
-    const existingUnit = kingdom.army.find((u) => u.unit.toString() === unitId && u.assignedTo === 'unassigned');
-    if (existingUnit) {
-      existingUnit.quantity += parseInt(quantity, 10);
-    } else {
-      kingdom.army.push({ unit: unitId, quantity: parseInt(quantity, 10), assignedTo: 'unassigned' });
-    }
-
-    await kingdom.save();
-    res.status(200).json(kingdom);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
 });
 
 // Assign units to offensive or defensive

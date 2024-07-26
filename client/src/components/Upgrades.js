@@ -1,19 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-
-const upgrades = {
-  barracks: [
-    { level: 1, name: 'Barracks Level 1', cost: 100, bonus: 10 },
-    { level: 2, name: 'Barracks Level 2', cost: 200, bonus: 20 },
-    { level: 3, name: 'Barracks Level 3', cost: 300, bonus: 30 }
-  ],
-  wallFortifications: [
-    { level: 1, name: 'Wooden Palisade', cost: 100, bonus: 10 },
-    { level: 2, name: 'Stone Wall', cost: 500, bonus: 50 },
-    { level: 3, name: 'Fortress Wall', cost: 1000, bonus: 100 }
-  ]
-};
+import upgrades from '../config/upgradesConfig';  // Adjust the path as needed
 
 const Upgrades = ({ onUpgradePurchase }) => {
   const { user } = useContext(AuthContext);
@@ -38,6 +26,7 @@ const Upgrades = ({ onUpgradePurchase }) => {
   }, [user.kingdom]);
 
   const handlePurchase = async (upgradeType) => {
+    setError(null); // Clear previous errors
     try {
       const response = await axios.post('/api/upgrades/purchase-upgrade', { userId: user._id, upgradeType });
       setKingdom(response.data);
@@ -45,7 +34,11 @@ const Upgrades = ({ onUpgradePurchase }) => {
       onUpgradePurchase(); // Trigger parent component to update
     } catch (error) {
       console.error('Error purchasing upgrade:', error);
-      setError(error.message);
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('An error occurred while purchasing the upgrade.');
+      }
     }
   };
 
@@ -89,6 +82,7 @@ const Upgrades = ({ onUpgradePurchase }) => {
           <p>Max Level Reached</p>
         )}
       </div>
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 };
