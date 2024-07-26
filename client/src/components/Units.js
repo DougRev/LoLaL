@@ -18,16 +18,24 @@ const Units = ({ units, onUnitPurchase }) => {
       console.log('Purchasing unit:', selectedUnit, 'Quantity:', quantity);
       const response = await axios.post('http://localhost:3000/api/units/purchase', {
         userId: user._id,
-        unitId: selectedUnit,
+        unitId: selectedUnit._id,
         quantity,
       });
       console.log('Purchase Response:', response.data);
       if (onUnitPurchase) {
         onUnitPurchase();
       }
+      // Reset after purchase
+      setSelectedUnit(null);
+      setQuantity(1);
     } catch (error) {
       console.error('Error purchasing unit:', error);
     }
+  };
+
+  const handleCancel = () => {
+    setSelectedUnit(null);
+    setQuantity(1);
   };
 
   return (
@@ -38,7 +46,7 @@ const Units = ({ units, onUnitPurchase }) => {
           units.map((unit, index) => (
             <li key={`${unit._id}-${index}`}>
               {unit.name} - Cost: {unit.cost}, Attack: {unit.attack}, Defense: {unit.defense}
-              <button onClick={() => setSelectedUnit(unit._id)}>Select</button>
+              <button onClick={() => setSelectedUnit(unit)}>Select</button>
             </li>
           ))
         ) : (
@@ -48,7 +56,10 @@ const Units = ({ units, onUnitPurchase }) => {
 
       {selectedUnit && (
         <div>
-          <h3>Purchase Units</h3>
+          <h3>Purchase {selectedUnit.name}</h3>
+          <p>Cost: {selectedUnit.cost}</p>
+          <p>Attack: {selectedUnit.attack}</p>
+          <p>Defense: {selectedUnit.defense}</p>
           <input
             type="number"
             value={quantity}
@@ -56,6 +67,7 @@ const Units = ({ units, onUnitPurchase }) => {
             min="1"
           />
           <button onClick={handlePurchase}>Purchase</button>
+          <button onClick={handleCancel}>Cancel</button>
         </div>
       )}
     </div>

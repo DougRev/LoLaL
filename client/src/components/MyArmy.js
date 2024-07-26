@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
-const MyArmy = ({ triggerFetch }) => {
+const MyArmy = ({ triggerFetch, onUnitAssign }) => {
   const { user } = useContext(AuthContext);
   const [army, setArmy] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,16 +22,8 @@ const MyArmy = ({ triggerFetch }) => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchArmy();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (triggerFetch) {
-      fetchArmy();
-    }
-  }, [triggerFetch]);
+    fetchArmy();
+  }, [user, triggerFetch]);
 
   const handleAssign = async (unitId, assignment) => {
     if (!user || !assignQuantity) return;
@@ -49,6 +41,7 @@ const MyArmy = ({ triggerFetch }) => {
       });
       console.log('Assign Response:', response.data);
       fetchArmy(); // Refetch the army to get updated data
+      onUnitAssign(); // Trigger re-fetch of kingdom data
     } catch (error) {
       console.error('Error assigning unit:', error);
     }
@@ -71,6 +64,7 @@ const MyArmy = ({ triggerFetch }) => {
       });
       console.log('Reassign Response:', response.data);
       fetchArmy(); // Refetch the army to get updated data
+      onUnitAssign(); // Trigger re-fetch of kingdom data
     } catch (error) {
       console.error('Error reassigning unit:', error);
     }

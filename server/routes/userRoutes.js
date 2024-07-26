@@ -12,6 +12,17 @@ router.get('/factions', getFactions);
 router.get('/:userId/army', auth, getUserArmy);
 
 
+// Get all users
+router.get('/', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get user by ID
 router.get('/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate('army.unit');
@@ -23,5 +34,6 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 module.exports = router;

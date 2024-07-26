@@ -1,16 +1,17 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Units from '../components/Units';
-import KingdomInfo from '../components/KingdomInfo';
 import MyArmy from '../components/MyArmy';
 import axios from 'axios';
 import './Dashboard.css';
+import Upgrades from '../components/Upgrades';
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, loading: userLoading } = useContext(AuthContext);
   const [units, setUnits] = useState([]);
   const [triggerFetch, setTriggerFetch] = useState(false);
   const [kingdom, setKingdom] = useState(null);
+  const [loadingKingdom, setLoadingKingdom] = useState(true);
 
   const handleUnitPurchase = () => {
     setTriggerFetch(!triggerFetch);
@@ -39,27 +40,33 @@ const Dashboard = () => {
       if (user && user.kingdom) {
         console.log('User kingdom ID:', user.kingdom);
         try {
-          const response = await axios.get(`http://localhost:3000/api/kingdoms/${user.kingdom._id}`);
+          const response = await axios.get(`/api/kingdoms/${user.kingdom._id}`);
           setKingdom(response.data);
           console.log('Fetched kingdom:', response.data);
         } catch (error) {
           console.error('Error fetching kingdom:', error);
+        } finally {
+          setLoadingKingdom(false);
         }
       } else {
         console.error('No kingdom ID found in user object');
+        setLoadingKingdom(false);
       }
     };
 
-    fetchKingdom();
-  }, [user, triggerFetch]);
+    if (!userLoading) {
+      fetchKingdom();
+    }
+  }, [user, triggerFetch, userLoading]);
 
-  if (!user) {
+  if (userLoading || loadingKingdom) {
     return <div>Loading...</div>;
   }
 
   if (!kingdom) {
     return <div>No kingdom data available. Please contact support.</div>;
   }
+
 
   return (
     <div>
@@ -71,8 +78,9 @@ const Dashboard = () => {
         <p><strong>Offense: </strong> {kingdom.offensiveStats}</p>
         <p><strong>Defense: </strong>{kingdom.defensiveStats}</p>
       </div>
-      <MyArmy triggerFetch={triggerFetch} />
-      <Units units={units} onUnitPurchase={handleUnitPurchase} onUnitAssign={handleUnitAssign} />
+      <MyArmy triggerFetch={triggerFetch} onUnitAssign={handleUnitAssign}/>
+      <Units units={units} onUnitPurchase={handleUnitPurchase}  />
+      <Upgrades onUpgradePurchase={handleUnitPurchase} />
     </div>
   );
 };

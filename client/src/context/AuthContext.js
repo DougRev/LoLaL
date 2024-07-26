@@ -134,7 +134,7 @@ const AuthProvider = ({ children }) => {
   console.log('AuthContext state:', state);
 
   return (
-    <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout, updateUser }}>
+    <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout, updateUser, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const FactionSelection = ({ setFactionSelected }) => {
-  const { updateUser } = useContext(AuthContext);
+  const { fetchUser } = useContext(AuthContext);
   const [factions, setFactions] = useState([]);
   const navigate = useNavigate();
 
@@ -28,7 +28,7 @@ const FactionSelection = ({ setFactionSelected }) => {
       const res = await axios.post('/api/users/setFaction', { factionName: faction.name }, config);
 
       if (res.status === 200) {
-        updateUser(res.data.user);
+        await fetchUser(); // Refresh user data after selecting faction
         setFactionSelected(true);
         navigate('/dashboard');
       }

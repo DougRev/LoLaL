@@ -9,6 +9,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import FactionSelection from './components/FactionSelection';
 import Unauthorized from './components/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
+import Battlegrounds from './pages/Battlegrounds';
 import './App.css';
 
 const AppContent = () => {
@@ -38,12 +39,11 @@ const AppContent = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={factionSelected ? <Dashboard /> : <FactionSelection setFactionSelected={setFactionSelected} />} />
           <Route path="/admin" element={
-            <>
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            </>
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
           } />
+          <Route path="/battlegrounds" element={<Battlegrounds />} />
           <Route path="/select-faction" element={<FactionSelection setFactionSelected={setFactionSelected} />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>

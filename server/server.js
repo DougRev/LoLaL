@@ -37,9 +37,10 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 // Routes
 app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/admin', auth, adminAuth, require('./routes/adminRoutes')); // Secured admin routes
+app.use('/api/admin', auth, adminAuth, require('./routes/adminRoutes')); 
 app.use('/api/units', unitRoutes);
 app.use('/api/kingdoms', require('./routes/kingdomRoutes'));
+app.use('/api/upgrades', require('./routes/upgradeRoutes'));
 
 // Google OAuth Routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
