@@ -1,7 +1,12 @@
-#main-stats {
+#kingdom-stats {
     display: inline-flex;
 }
 
-#main-stats p {
+#kingdom-stats p {
     margin-right: 5px;
 }
+
+#action-stats {
+    margin-right: 5px;
+}
+

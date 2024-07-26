@@ -91,6 +91,7 @@ const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['x-auth-token'];
       dispatch({ type: 'LOGOUT' });
+      console.log('Logged out, redirecting...');
       window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);

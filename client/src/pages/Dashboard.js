@@ -7,17 +7,23 @@ import './Dashboard.css';
 import Upgrades from '../components/Upgrades';
 
 const Dashboard = () => {
-  const { user, loading: userLoading } = useContext(AuthContext);
+  const { user, loading: userLoading, logout } = useContext(AuthContext);
   const [units, setUnits] = useState([]);
   const [triggerFetch, setTriggerFetch] = useState(false);
   const [kingdom, setKingdom] = useState(null);
   const [loadingKingdom, setLoadingKingdom] = useState(true);
+  const [nextGoldUpdate, setNextGoldUpdate] = useState(0);
+  const [nextActionPointUpdate, setNextActionPointUpdate] = useState(0);
 
   const handleUnitPurchase = () => {
     setTriggerFetch(!triggerFetch);
   };
 
   const handleUnitAssign = () => {
+    setTriggerFetch(!triggerFetch);
+  };
+
+  const handleKingdomUpdate = () => {
     setTriggerFetch(!triggerFetch);
   };
 
@@ -43,6 +49,14 @@ const Dashboard = () => {
           const response = await axios.get(`/api/kingdoms/${user.kingdom._id}`);
           setKingdom(response.data);
           console.log('Fetched kingdom:', response.data);
+
+          const interval = 60000; // 1 minute interval for gold
+          const actionInterval = 300000; // 5 minute interval for action points
+          const now = Date.now();
+          const lastGoldCollection = new Date(response.data.lastGoldCollection).getTime();
+          const lastActionPointUpdate = new Date(response.data.lastActionPointUpdate).getTime();
+          setNextGoldUpdate(interval - (now - lastGoldCollection) % interval);
+          setNextActionPointUpdate(actionInterval - (now - lastActionPointUpdate) % actionInterval);
         } catch (error) {
           console.error('Error fetching kingdom:', error);
         } finally {
@@ -59,6 +73,29 @@ const Dashboard = () => {
     }
   }, [user, triggerFetch, userLoading]);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNextGoldUpdate((prev) => {
+        if (prev > 1000) {
+          return prev - 1000;
+        } else {
+          handleKingdomUpdate();
+          return 60000; // Reset interval
+        }
+      });
+      setNextActionPointUpdate((prev) => {
+        if (prev > 1000) {
+          return prev - 1000;
+        } else {
+          handleKingdomUpdate();
+          return 300000; // Reset interval
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   if (userLoading || loadingKingdom) {
     return <div>Loading...</div>;
   }
@@ -67,20 +104,28 @@ const Dashboard = () => {
     return <div>No kingdom data available. Please contact support.</div>;
   }
 
-
   return (
     <div>
       <h1>Kingdom Dashboard</h1>
-      <p>Welcome to your dashboard, {user.name}!</p>
-      <p>Your faction: {user.faction}</p>
-      <div id='main-stats'>
+      {user && <p>Welcome to your dashboard, {user.name}!</p>}
+
+      <div id='kingdom-stats'>
+        <p><strong>Faction: </strong> {user && user.faction}</p>
         <p><strong>Gold: </strong>{kingdom.gold}</p>
         <p><strong>Offense: </strong> {kingdom.offensiveStats}</p>
         <p><strong>Defense: </strong>{kingdom.defensiveStats}</p>
+        <p><strong>Action Points: </strong>{kingdom.actionPoints}</p>
+
       </div>
-      <MyArmy triggerFetch={triggerFetch} onUnitAssign={handleUnitAssign}/>
-      <Units units={units} onUnitPurchase={handleUnitPurchase}  />
-      <Upgrades onUpgradePurchase={handleUnitPurchase} />
+
+      <div id='action-stats'>
+        <p><strong>Gold Production Rate: </strong>{kingdom.goldProductionRate} per minute</p>
+        <p><strong>Next Gold Update: </strong>{Math.floor(nextGoldUpdate / 1000)} seconds</p>
+        <p><strong>Next Action Point Update: </strong>{Math.floor(nextActionPointUpdate / 1000)} seconds</p>
+      </div>
+      <MyArmy triggerFetch={triggerFetch} onUnitAssign={handleUnitAssign} onKingdomUpdate={handleKingdomUpdate}/>
+      <Units units={units} onUnitPurchase={handleUnitPurchase} onKingdomUpdate={handleKingdomUpdate}/>
+      <Upgrades onUpgradePurchase={handleKingdomUpdate} />
     </div>
   );
 };

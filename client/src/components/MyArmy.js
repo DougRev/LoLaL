@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
-const MyArmy = ({ triggerFetch, onUnitAssign }) => {
+const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
   const { user } = useContext(AuthContext);
   const [army, setArmy] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,6 +10,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign }) => {
   const [assignQuantity, setAssignQuantity] = useState(1);
 
   const fetchArmy = async () => {
+    if (!user || !user._id) return;
     try {
       const response = await axios.get(`/api/users/${user._id}/army`);
       setArmy(response.data.army);

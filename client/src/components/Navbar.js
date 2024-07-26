@@ -22,8 +22,6 @@ const Navbar = () => {
     setIsOpen(!isOpen);
   };
 
-  console.log('User in Navbar:', user);
-
   return (
     <div className={`navbar ${isOpen ? 'open' : ''}`}>
       <div className="hamburger" onClick={toggleNavbar}>
