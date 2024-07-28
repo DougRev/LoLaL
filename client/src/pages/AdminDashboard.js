@@ -1,7 +1,8 @@
 import React from 'react';
 import UserManagement from '../components/UserManagement';
 import UnitManager from '../components/UnitManager';
-
+import DungeonCreation
+ from '../components/DungeonCreation';
 const AdminDashboard = () => {
   console.log('AdminDashboard rendered');
 
@@ -16,6 +17,8 @@ const AdminDashboard = () => {
       <h1>Admin Dashboard</h1>
       <UserManagement />
       <UnitManager addUnit={addUnit} />
+      <DungeonCreation />
+
     </div>
   );
 };

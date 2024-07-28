@@ -7,7 +7,9 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session'); 
 const auth = require('./middleware/auth');
 const adminAuth = require('./middleware/adminMiddleware');
+
 const unitRoutes = require('./routes/unitRoutes');
+const dungeonRoutes = require('./routes/dungeonRoutes');
 
 require('./config/passport');
 
@@ -41,6 +43,7 @@ app.use('/api/admin', auth, adminAuth, require('./routes/adminRoutes'));
 app.use('/api/units', unitRoutes);
 app.use('/api/kingdoms', require('./routes/kingdomRoutes'));
 app.use('/api/upgrades', require('./routes/upgradeRoutes'));
+app.use('/api/dungeons', dungeonRoutes);
 
 // Google OAuth Routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

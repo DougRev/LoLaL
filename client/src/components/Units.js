@@ -64,7 +64,7 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
           <input
             type="number"
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={(e) => setQuantity(Math.max(1, Math.min(e.target.value, selectedUnit.quantity)))}
             min="1"
           />
           <button onClick={handlePurchase}>Purchase</button>

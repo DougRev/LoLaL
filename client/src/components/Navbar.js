@@ -31,6 +31,8 @@ const Navbar = () => {
         {isAuthenticated && (
           <>
             <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
+            <li><Link to="/dungeons" onClick={toggleNavbar}>Dungeons</Link></li>
+
             {user && user.role === 'admin' && (
               <li><button onClick={handleAdminNavigate}>Admin Dashboard</button></li>
             )}
@@ -38,6 +40,7 @@ const Navbar = () => {
             <li><button onClick={handleLogout}>Logout</button></li>
           </>
         )}
+        
         {!isAuthenticated && (
           <>
             <li><Link to="/login" onClick={toggleNavbar}>Login</Link></li>

@@ -74,7 +74,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
   const renderUnitList = (units, assignment) => (
     <ul>
       {units
-        .filter(unit => unit.assignedTo === assignment && (assignment !== 'unassigned' || unit.quantity > 0))
+        .filter(unit => unit.assignedTo === assignment && unit.quantity > 0)
         .map((unit, index) => (
           <li key={`${unit.unit._id}-${index}`}>
             <strong>Amount: {unit.quantity}</strong> - {unit.unit.name}, Cost: {unit.unit.cost}, Attack: {unit.unit.attack}, Defense: {unit.unit.defense}
@@ -84,7 +84,9 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
                   type="number"
                   placeholder="Assign Quantity"
                   value={assignQuantity}
-                  onChange={(e) => setAssignQuantity(e.target.value)}
+                  onChange={(e) => setAssignQuantity(Math.max(1, Math.min(e.target.value, unit.quantity)))}
+                  min="1"
+                  max={unit.quantity}
                 />
                 <button onClick={() => handleAssign(unit.unit._id, 'offensive')}>Assign to Offensive</button>
                 <button onClick={() => handleAssign(unit.unit._id, 'defensive')}>Assign to Defensive</button>
@@ -96,7 +98,9 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
                   type="number"
                   placeholder="Reassign Quantity"
                   value={assignQuantity}
-                  onChange={(e) => setAssignQuantity(e.target.value)}
+                  onChange={(e) => setAssignQuantity(Math.max(1, Math.min(e.target.value, unit.quantity)))}
+                  min="1"
+                  max={unit.quantity}
                 />
                 <button onClick={() => handleReassign(unit.unit._id, assignment, 'offensive')}>Reassign to Offensive</button>
                 <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')}>Reassign to Defensive</button>
