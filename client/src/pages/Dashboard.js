@@ -112,6 +112,7 @@ const Dashboard = () => {
       <div id='kingdom-stats'>
         <p><strong>Faction: </strong> {user && user.faction}</p>
         <p><strong>Gold: </strong>{kingdom.gold}</p>
+        <p><strong>Vault: </strong>{kingdom.vault.capacity}</p>
         <p><strong>Offense: </strong> {kingdom.offensiveStats}</p>
         <p><strong>Defense: </strong>{kingdom.defensiveStats}</p>
         <p><strong>Action Points: </strong>{kingdom.actionPoints}</p>

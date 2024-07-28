@@ -17,6 +17,12 @@ const upgrades = {
     { level: 1, name: 'Gold Mine Level 1', cost: 500, bonus: 5 },
     { level: 2, name: 'Gold Mine Level 2', cost: 1000, bonus: 10 },
     { level: 3, name: 'Gold Mine Level 3', cost: 2000, bonus: 20 }
+  ],
+  vault: [
+    { level: 1, name: 'Vault Level 1', cost: 1000, capacity: 500 },
+    { level: 2, name: 'Vault Level 2', cost: 2000, capacity: 1000 },
+    { level: 3, name: 'Vault Level 3', cost: 3000, capacity: 1500 },
+    // Add more levels as needed
   ]
 };
 

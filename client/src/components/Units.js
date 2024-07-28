@@ -42,6 +42,15 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
     }
   };
 
+  const handleQuantityChange = (e) => {
+    const value = e.target.value;
+    if (!isNaN(value) && value >= 0) {
+      setQuantity(parseInt(value, 10));
+    } else {
+      setQuantity(1);
+    }
+  };
+
   return (
     <div>
       <h2>Units for Sale</h2>
@@ -64,7 +73,7 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
           <input
             type="number"
             value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, Math.min(e.target.value, selectedUnit.quantity)))}
+            onChange={handleQuantityChange}
             min="1"
           />
           <button onClick={handlePurchase}>Purchase</button>

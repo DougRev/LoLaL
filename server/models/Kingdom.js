@@ -13,6 +13,11 @@ const UpgradeSchema = new mongoose.Schema({
   bonus: { type: Number, default: 0 }
 });
 
+const VaultSchema = new mongoose.Schema({
+  level: { type: Number, default: 1 },
+  capacity: { type: Number, default: 1000 },
+});
+
 const KingdomSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },
@@ -28,7 +33,9 @@ const KingdomSchema = new mongoose.Schema({
   offensiveStats: { type: Number, default: 0 },
   defensiveStats: { type: Number, default: 0 },
   barracks: { type: UpgradeSchema, default: { level: 0, name: 'Barracks', cost: 100, bonus: 10 } },
-  wallFortifications: { type: UpgradeSchema, default: { level: 0, name: 'Wall Fortification', cost: 100, bonus: 10 } }
+  wallFortifications: { type: UpgradeSchema, default: { level: 0, name: 'Wall Fortification', cost: 100, bonus: 10 } },
+  vault: { type: VaultSchema, default: { level: 1, capacity: 1000 } },
+  vaultGold: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Kingdom', KingdomSchema);

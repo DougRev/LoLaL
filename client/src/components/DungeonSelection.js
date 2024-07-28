@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import BattleResult from './BattleResult';
 
 const DungeonSelection = ({ dungeons, selectedDungeon }) => {
   const { user } = useContext(AuthContext);
@@ -8,6 +9,8 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
   const [selectedUnits, setSelectedUnits] = useState({});
   const [battleResult, setBattleResult] = useState(null);
   const [error, setError] = useState(null);
+  const [battleLogMessages, setBattleLogMessages] = useState([]);
+  const [currentLogIndex, setCurrentLogIndex] = useState(0);
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -39,6 +42,8 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
   const handleBattle = async () => {
     setError(null);
     setBattleResult(null);
+    setBattleLogMessages([]);
+    setCurrentLogIndex(0);
 
     try {
       const response = await axios.post('/api/dungeons/battle', {
@@ -47,12 +52,23 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
         units: selectedUnits,
       });
       setBattleResult(response.data);
+      setBattleLogMessages(response.data.battleLog);
       console.log('Battle result:', response.data);
     } catch (error) {
       console.error('Error starting battle:', error);
       setError('Error starting battle');
     }
   };
+
+  useEffect(() => {
+    if (battleLogMessages.length > 0 && currentLogIndex < battleLogMessages.length) {
+      const timer = setTimeout(() => {
+        setCurrentLogIndex(prevIndex => prevIndex + 1);
+      }, 2000); // 2 seconds delay between each log message
+
+      return () => clearTimeout(timer);
+    }
+  }, [battleLogMessages, currentLogIndex]);
 
   return (
     <div>
@@ -84,7 +100,15 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
         <button onClick={handleBattle} disabled={!selectedDungeon}>Start Battle</button>
       </div>
       {error && <div style={{ color: 'red' }}>{error}</div>}
-      {battleResult && (
+      <div>
+        <h4>Battle Log:</h4>
+        <ul>
+          {battleLogMessages.slice(0, currentLogIndex).map((log, index) => (
+            <li key={index}>{log}</li>
+          ))}
+        </ul>
+      </div>
+      {battleResult && currentLogIndex >= battleLogMessages.length && (
         <div>
           <h3>Battle Result</h3>
           <p>{battleResult.message}</p>

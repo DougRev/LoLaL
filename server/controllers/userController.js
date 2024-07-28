@@ -46,7 +46,7 @@ const register = async (req, res) => {
     const kingdom = new Kingdom({
       user: user._id,
       name: `${user.name}'s Kingdom`,
-      gold: 100,  // Initial gold assigned to the kingdom
+      gold: 10000,  // Initial gold assigned to the kingdom
     });
 
     await kingdom.save();
@@ -59,44 +59,6 @@ const register = async (req, res) => {
   } catch (err) {
     console.error('Error during registration:', err.message);
     res.status(500).send('Server error');
-  }
-};
-
-const googleOAuthCallback = async (req, res) => {
-  const { name, email, googleId } = req.body;
-
-  try {
-    let user = await User.findOne({ googleId });
-
-    if (!user) {
-      user = new User({
-        name,
-        email,
-        googleId,
-        role: 'user'
-      });
-
-      await user.save();
-
-      // Create a new kingdom for the user
-      const kingdom = new Kingdom({
-        user: user._id,
-        name: `${user.name}'s Kingdom`,
-        gold: 100,  // Initial gold assigned to the kingdom
-      });
-
-      await kingdom.save();
-
-      // Associate the kingdom with the user
-      user.kingdom = kingdom._id.toString();
-      await user.save();
-    }
-
-    const token = generateToken(user);
-    res.status(200).json({ token });
-  } catch (error) {
-    console.error('Error during Google OAuth:', error);
-    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -195,4 +157,4 @@ const getUserArmy = async (req, res) => {
   }
 };
 
-module.exports = { register, googleOAuthCallback, login, getUser, setFaction, getFactions, getUserArmy };
+module.exports = { register, login, getUser, setFaction, getFactions, getUserArmy };

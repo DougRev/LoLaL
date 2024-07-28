@@ -57,6 +57,11 @@ const Upgrades = ({ onUpgradePurchase }) => {
   const currentBarracksUpgrade = upgrades.barracks.find(upg => upg.level === kingdom.barracks.level + 1);
   const currentWallUpgrade = upgrades.wallFortifications.find(upg => upg.level === kingdom.wallFortifications.level + 1);
   const currentGoldProductionUpgrade = upgrades.goldProduction.find(upg => upg.level === kingdom.goldProductionRate / 10);
+  const currentVaultUpgrade = {
+    level: kingdom.vault?.level + 1 || 1,
+    cost: (kingdom.vault?.level + 1 || 1) * 1000,
+    capacity: (kingdom.vault?.capacity + (kingdom.vault?.level + 1 || 1) * 500) || 500,
+  };
 
   return (
     <div>
@@ -95,6 +100,19 @@ const Upgrades = ({ onUpgradePurchase }) => {
             <p>Cost: {currentGoldProductionUpgrade.cost} Gold</p>
             <p>Gold Production Bonus: {currentGoldProductionUpgrade.bonus} Gold per interval</p>
             <button onClick={() => handlePurchase('goldProduction')}>Purchase</button>
+          </div>
+        ) : (
+          <p>Max Level Reached</p>
+        )}
+      </div>
+      <div>
+        <h3>Vault Upgrade</h3>
+        {currentVaultUpgrade ? (
+          <div>
+            <p>Level: {currentVaultUpgrade.level}</p>
+            <p>Cost: {currentVaultUpgrade.cost} Gold</p>
+            <p>Capacity: {currentVaultUpgrade.capacity} Gold</p>
+            <button onClick={() => handlePurchase('vault')}>Purchase</button>
           </div>
         ) : (
           <p>Max Level Reached</p>

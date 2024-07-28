@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Dungeon = require('../models/Dungeon');
 const User = require('../models/User');
-const auth = require('../middleware/auth'); 
-const admin = require('../middleware/adminMiddleware'); 
+const Unit = require('../models/Unit');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/adminMiddleware');
 
 // Get all dungeons
 router.get('/', async (req, res) => {
@@ -63,9 +64,10 @@ router.delete('/:id', [auth, admin], async (req, res) => {
   }
 });
 
-const calculateBattleOutcome = (units, dungeon) => {
+const calculateTurnBasedBattleOutcome = (units, dungeon) => {
     let playerAttack = 0;
     let playerDefense = 0;
+    let battleLog = [];
   
     units.forEach(unit => {
       playerAttack += unit.attack * unit.quantity;
@@ -74,18 +76,40 @@ const calculateBattleOutcome = (units, dungeon) => {
   
     const bossAttack = dungeon.boss.attack;
     const bossDefense = dungeon.boss.defense;
+    const bossSpeed = dungeon.boss.speed || 1; // Speed advantage for boss
+  
+    let playerSpeed = 1; // Constant speed for player's units
+    let playerHealth = playerDefense;
+    let bossHealth = bossDefense;
+  
+    let turn = 1;
+    while (playerHealth > 0 && bossHealth > 0) {
+      if (turn % bossSpeed === 0) {
+        // Boss attacks first
+        playerHealth -= bossAttack;
+        battleLog.push(`Turn ${turn}: Boss attacks! Player's health is now ${playerHealth}`);
+        if (playerHealth <= 0) break; // If player is defeated, break the loop
+      }
+      if (turn % playerSpeed === 0 && playerHealth > 0) {
+        // Player attacks
+        bossHealth -= playerAttack;
+        battleLog.push(`Turn ${turn}: Player attacks! Boss's health is now ${bossHealth}`);
+        if (bossHealth <= 0) break; // If boss is defeated, break the loop
+      }
+      turn++;
+    }
   
     let result = 'lose';
-    if (playerAttack > bossDefense) {
+    if (bossHealth <= 0 && playerHealth > 0) {
       result = 'win';
-    } else if (playerDefense > bossAttack) {
+    } else if (playerHealth <= 0 && bossHealth <= 0) {
       result = 'draw';
     }
   
-    return { result, playerAttack, playerDefense, bossAttack, bossDefense };
+    return { result, playerAttack, playerDefense, bossAttack, bossDefense, battleLog };
   };
   
-  const calculateCasualties = (units, result) => {
+  const calculateTurnBasedCasualties = (units, result) => {
     const casualties = {};
     units.forEach(unit => {
       let lossFactor = 0;
@@ -98,6 +122,7 @@ const calculateBattleOutcome = (units, dungeon) => {
       }
       casualties[unit.unitId] = Math.floor(unit.quantity * lossFactor);
     });
+  
     return casualties;
   };
   
@@ -112,20 +137,34 @@ const calculateBattleOutcome = (units, dungeon) => {
         return res.status(404).json({ message: 'User or dungeon not found' });
       }
   
-      const armyUnits = user.kingdom.army.filter(armyUnit => units[armyUnit.unit.toString()]);
-      const battleUnits = armyUnits.map(armyUnit => ({
-        unitId: armyUnit.unit.toString(),
-        attack: armyUnit.unit.attack,
-        defense: armyUnit.unit.defense,
-        quantity: units[armyUnit.unit.toString()],
-      }));
+      const unitIds = Object.keys(units);
+      const unitDetails = await Unit.find({ _id: { $in: unitIds } });
   
-      const { result, playerAttack, playerDefense, bossAttack, bossDefense } = calculateBattleOutcome(battleUnits, dungeon);
-      const casualties = calculateCasualties(battleUnits, result);
+      const battleUnits = unitDetails.map(unitDetail => {
+        const quantity = units[unitDetail._id.toString()];
+        return {
+          unitId: unitDetail._id.toString(),
+          name: unitDetail.name,
+          attack: unitDetail.attack,
+          defense: unitDetail.defense,
+          quantity: quantity,
+        };
+      });
+  
+      console.log('User and Dungeon fetched:', user, dungeon);
+      console.log('Battle Units:', battleUnits);
+  
+      const { result, playerAttack, playerDefense, bossAttack, bossDefense, battleLog } = calculateTurnBasedBattleOutcome(battleUnits, dungeon);
+      const casualties = calculateTurnBasedCasualties(battleUnits, result);
+  
+      console.log('Battle calculations:', { playerAttack, playerDefense, bossAttack, bossDefense, result });
+      console.log('Calculated casualties:', casualties);
   
       battleUnits.forEach(unit => {
         const armyUnit = user.kingdom.army.find(armyUnit => armyUnit.unit.toString() === unit.unitId);
-        armyUnit.quantity -= casualties[unit.unitId];
+        if (armyUnit) {
+          armyUnit.quantity -= casualties[unit.unitId];
+        }
       });
   
       if (result === 'win') {
@@ -134,15 +173,18 @@ const calculateBattleOutcome = (units, dungeon) => {
   
       await user.kingdom.save();
   
+      console.log('Final Kingdom State:', user.kingdom);
+  
       res.status(200).json({
         message: `You ${result} the battle!`,
         goldEarned: result === 'win' ? dungeon.reward.gold : 0,
         unitsLost: casualties,
+        battleLog: battleLog,
       });
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   });
   
-
-module.exports = router;
+  module.exports = router;
+  

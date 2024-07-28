@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const DungeonCreation = () => {
@@ -9,8 +9,23 @@ const DungeonCreation = () => {
   const [bossDefense, setBossDefense] = useState(0);
   const [rewardGold, setRewardGold] = useState(0);
   const [rewardOther, setRewardOther] = useState('');
+  const [dungeons, setDungeons] = useState([]);
+  const [editingDungeon, setEditingDungeon] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  useEffect(() => {
+    fetchDungeons();
+  }, []);
+
+  const fetchDungeons = async () => {
+    try {
+      const response = await axios.get('/api/dungeons');
+      setDungeons(response.data);
+    } catch (error) {
+      console.error('Error fetching dungeons:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,29 +33,81 @@ const DungeonCreation = () => {
     setSuccess(null);
 
     try {
-      const response = await axios.post('/api/dungeons', {
-        name,
-        level,
-        boss: {
-          name: bossName,
-          attack: bossAttack,
-          defense: bossDefense,
-        },
-        reward: {
-          gold: rewardGold,
-          other: rewardOther,
-        },
-      });
-      setSuccess('Dungeon created successfully');
+      if (editingDungeon) {
+        await axios.put(`/api/dungeons/${editingDungeon._id}`, {
+          name,
+          level,
+          boss: {
+            name: bossName,
+            attack: bossAttack,
+            defense: bossDefense,
+          },
+          reward: {
+            gold: rewardGold,
+            other: rewardOther,
+          },
+        });
+        setSuccess('Dungeon updated successfully');
+      } else {
+        await axios.post('/api/dungeons', {
+          name,
+          level,
+          boss: {
+            name: bossName,
+            attack: bossAttack,
+            defense: bossDefense,
+          },
+          reward: {
+            gold: rewardGold,
+            other: rewardOther,
+          },
+        });
+        setSuccess('Dungeon created successfully');
+      }
+      fetchDungeons();
+      resetForm();
     } catch (error) {
-      console.error('Error creating dungeon:', error);
-      setError('Error creating dungeon');
+      console.error('Error creating/updating dungeon:', error);
+      setError('Error creating/updating dungeon');
     }
+  };
+
+  const handleEdit = (dungeon) => {
+    setEditingDungeon(dungeon);
+    setName(dungeon.name);
+    setLevel(dungeon.level);
+    setBossName(dungeon.boss.name);
+    setBossAttack(dungeon.boss.attack);
+    setBossDefense(dungeon.boss.defense);
+    setRewardGold(dungeon.reward.gold);
+    setRewardOther(dungeon.reward.other);
+  };
+
+  const handleDelete = async (dungeonId) => {
+    try {
+      await axios.delete(`/api/dungeons/${dungeonId}`);
+      setSuccess('Dungeon deleted successfully');
+      fetchDungeons();
+    } catch (error) {
+      console.error('Error deleting dungeon:', error);
+      setError('Error deleting dungeon');
+    }
+  };
+
+  const resetForm = () => {
+    setEditingDungeon(null);
+    setName('');
+    setLevel(1);
+    setBossName('');
+    setBossAttack(0);
+    setBossDefense(0);
+    setRewardGold(0);
+    setRewardOther('');
   };
 
   return (
     <div>
-      <h2>Create Dungeon</h2>
+      <h2>{editingDungeon ? 'Edit Dungeon' : 'Create Dungeon'}</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Name:</label>
@@ -70,10 +137,21 @@ const DungeonCreation = () => {
           <label>Reward Other:</label>
           <input type="text" value={rewardOther} onChange={(e) => setRewardOther(e.target.value)} />
         </div>
-        <button type="submit">Create</button>
+        <button type="submit">{editingDungeon ? 'Update' : 'Create'}</button>
+        {editingDungeon && <button type="button" onClick={resetForm}>Cancel</button>}
       </form>
       {error && <div style={{ color: 'red' }}>{error}</div>}
       {success && <div style={{ color: 'green' }}>{success}</div>}
+      <h2>Existing Dungeons</h2>
+      <ul>
+        {dungeons.map((dungeon) => (
+          <li key={dungeon._id}>
+            {dungeon.name} (Level: {dungeon.level}) - Boss: {dungeon.boss.name}, Attack: {dungeon.boss.attack}, Defense: {dungeon.boss.defense}, Reward: {dungeon.reward.gold} Gold, {dungeon.reward.other}
+            <button onClick={() => handleEdit(dungeon)}>Edit</button>
+            <button onClick={() => handleDelete(dungeon._id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
