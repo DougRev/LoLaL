@@ -6,8 +6,21 @@ const Unit = require('../models/Unit');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/adminMiddleware');
 
-// Get all dungeons
-router.get('/', async (req, res) => {
+// Get all dungeons the user is eligible to see
+router.get('/', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const highestDungeonCompleted = user.highestDungeonCompleted || 0;
+
+    const dungeons = await Dungeon.find({ level: { $lte: highestDungeonCompleted + 1 } });
+    res.json(dungeons);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get all dungeons for admin
+router.get('/all', [auth, admin], async (req, res) => {
   try {
     const dungeons = await Dungeon.find();
     res.json(dungeons);
@@ -65,68 +78,68 @@ router.delete('/:id', [auth, admin], async (req, res) => {
 });
 
 const calculateTurnBasedBattleOutcome = (units, dungeon) => {
-    let playerAttack = 0;
-    let playerDefense = 0;
-    let battleLog = [];
-  
-    units.forEach(unit => {
-      playerAttack += unit.attack * unit.quantity;
-      playerDefense += unit.defense * unit.quantity;
-    });
-  
-    const bossAttack = dungeon.boss.attack;
-    const bossDefense = dungeon.boss.defense;
-    const bossSpeed = dungeon.boss.speed || 1; // Speed advantage for boss
-  
-    let playerSpeed = 1; // Constant speed for player's units
-    let playerHealth = playerDefense;
-    let bossHealth = bossDefense;
-  
-    let turn = 1;
-    while (playerHealth > 0 && bossHealth > 0) {
-      if (turn % bossSpeed === 0) {
-        // Boss attacks first
-        playerHealth -= bossAttack;
-        battleLog.push(`Turn ${turn}: Boss attacks! Player's health is now ${playerHealth}`);
-        if (playerHealth <= 0) break; // If player is defeated, break the loop
-      }
-      if (turn % playerSpeed === 0 && playerHealth > 0) {
-        // Player attacks
-        bossHealth -= playerAttack;
-        battleLog.push(`Turn ${turn}: Player attacks! Boss's health is now ${bossHealth}`);
-        if (bossHealth <= 0) break; // If boss is defeated, break the loop
-      }
-      turn++;
+  let playerAttack = 0;
+  let playerDefense = 0;
+  let battleLog = [];
+  let bossHealth = dungeon.boss.health; // Initialize boss health
+
+  units.forEach(unit => {
+    playerAttack += unit.attack * unit.quantity;
+    playerDefense += unit.defense * unit.quantity;
+  });
+
+  const bossAttack = dungeon.boss.attack;
+  const bossDefense = dungeon.boss.defense;
+  const bossSpeed = dungeon.boss.speed || 1; // Speed advantage for boss
+
+  let playerSpeed = 1; // Constant speed for player's units
+  let playerHealth = playerDefense;
+
+  let turn = 1;
+  while (playerHealth > 0 && bossHealth > 0) {
+    if (turn % bossSpeed === 0) {
+      // Boss attacks first
+      playerHealth -= bossAttack;
+      battleLog.push(`Turn ${turn}: Boss attacks! Player's health is now ${playerHealth}`);
+      if (playerHealth <= 0) break; // If player is defeated, break the loop
     }
-  
-    let result = 'lose';
-    if (bossHealth <= 0 && playerHealth > 0) {
-      result = 'win';
-    } else if (playerHealth <= 0 && bossHealth <= 0) {
-      result = 'draw';
+    if (turn % playerSpeed === 0 && playerHealth > 0) {
+      // Player attacks
+      bossHealth -= playerAttack;
+      battleLog.push(`Turn ${turn}: Player attacks! Boss's health is now ${bossHealth}`);
+      if (bossHealth <= 0) break; // If boss is defeated, break the loop
     }
-  
-    return { result, playerAttack, playerDefense, bossAttack, bossDefense, battleLog };
-  };
-  
-  const calculateTurnBasedCasualties = (units, result) => {
-    const casualties = {};
-    units.forEach(unit => {
-      let lossFactor = 0;
-      if (result === 'win') {
-        lossFactor = 0.1;
-      } else if (result === 'draw') {
-        lossFactor = 0.3;
-      } else if (result === 'lose') {
-        lossFactor = 0.5;
-      }
-      casualties[unit.unitId] = Math.floor(unit.quantity * lossFactor);
-    });
-  
-    return casualties;
-  };
-  
-  router.post('/battle', async (req, res) => {
+    turn++;
+  }
+
+  let result = 'lose';
+  if (bossHealth <= 0 && playerHealth > 0) {
+    result = 'win';
+  } else if (playerHealth <= 0 && bossHealth <= 0) {
+    result = 'draw';
+  }
+
+  return { result, playerAttack, playerDefense, bossAttack, bossDefense, bossHealth, battleLog };
+};
+
+const calculateTurnBasedCasualties = (units, result) => {
+  const casualties = {};
+  units.forEach(unit => {
+    let lossFactor = 0;
+    if (result === 'win') {
+      lossFactor = 0.1;
+    } else if (result === 'draw') {
+      lossFactor = 0.3;
+    } else if (result === 'lose') {
+      lossFactor = 0.5;
+    }
+    casualties[unit.unitId] = Math.floor(unit.quantity * lossFactor);
+  });
+
+  return casualties;
+};
+
+router.post('/battle', async (req, res) => {
     const { userId, dungeonId, units } = req.body;
   
     try {
@@ -163,15 +176,19 @@ const calculateTurnBasedBattleOutcome = (units, dungeon) => {
       battleUnits.forEach(unit => {
         const armyUnit = user.kingdom.army.find(armyUnit => armyUnit.unit.toString() === unit.unitId);
         if (armyUnit) {
-          armyUnit.quantity -= casualties[unit.unitId];
+          armyUnit.quantity = Math.max(0, armyUnit.quantity - casualties[unit.unitId]); // Ensure no negative values
         }
       });
   
       if (result === 'win') {
         user.kingdom.gold += dungeon.reward.gold;
+        if (user.highestDungeonCompleted < dungeon.level) {
+          user.highestDungeonCompleted = dungeon.level; // Update the highest dungeon completed
+        }
       }
   
       await user.kingdom.save();
+      await user.save(); // Save the user document after updating highestDungeonCompleted
   
       console.log('Final Kingdom State:', user.kingdom);
   
@@ -182,9 +199,9 @@ const calculateTurnBasedBattleOutcome = (units, dungeon) => {
         battleLog: battleLog,
       });
     } catch (err) {
+      console.error('Error in battle:', err);
       res.status(500).json({ message: err.message });
     }
   });
   
   module.exports = router;
-  

@@ -133,9 +133,9 @@ const Dashboard = () => {
         </div>
 
         <div className="tabs">
-          <button className={activeTab === 'upgrades' ? 'active' : ''} onClick={() => setActiveTab('upgrades')}>Upgrades</button>
           <button className={activeTab === 'recruiting' ? 'active' : ''} onClick={() => setActiveTab('recruiting')}>Recruiting</button>
           <button className={activeTab === 'barracks' ? 'active' : ''} onClick={() => setActiveTab('barracks')}>Barracks</button>
+          <button className={activeTab === 'upgrades' ? 'active' : ''} onClick={() => setActiveTab('upgrades')}>Upgrades</button>
         </div>
 
         <div className="content">

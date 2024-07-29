@@ -1,17 +1,22 @@
 const mongoose = require('mongoose');
 
-const DungeonSchema = new mongoose.Schema({
-  name: { type: String, default: 'Unknown Dungeon' },
-  level: { type: Number, required: true },
-  boss: {
-    name: { type: String, required: true },
-    attack: { type: Number, required: true },
-    defense: { type: Number, required: true },
-  },
-  reward: {
-    gold: { type: Number, required: true },
-    other: { type: String },
-  },
-}, { timestamps: true });
+const bossSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  attack: { type: Number, required: true },
+  defense: { type: Number, required: true },
+  health: { type: Number, required: true } 
+});
 
-module.exports = mongoose.model('Dungeon', DungeonSchema);
+const rewardSchema = new mongoose.Schema({
+  gold: { type: Number, required: true },
+  other: { type: String }
+});
+
+const dungeonSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  level: { type: Number, required: true },
+  boss: { type: bossSchema, required: true },
+  reward: { type: rewardSchema, required: true }
+});
+
+module.exports = mongoose.model('Dungeon', dungeonSchema);

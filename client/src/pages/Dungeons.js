@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import DungeonSelection from '../components/DungeonSelection';
+import './Dungeons.css';
 
 const Dungeons = () => {
   const { user } = useContext(AuthContext);
@@ -13,7 +14,7 @@ const Dungeons = () => {
   useEffect(() => {
     const fetchDungeons = async () => {
       try {
-        const response = await axios.get('/api/dungeons');
+        const response = await axios.get('/api/dungeons', { headers: { 'Authorization': `Bearer ${user.token}` } });
         setDungeons(response.data);
         setLoading(false);
       } catch (error) {
@@ -24,35 +25,43 @@ const Dungeons = () => {
     };
 
     fetchDungeons();
-  }, []);
+  }, [user.token]);
 
   const handleEnterDungeon = (dungeonId) => {
     const dungeon = dungeons.find(d => d._id === dungeonId);
     setSelectedDungeon(dungeon);
   };
 
+  const handleBack = () => {
+    setSelectedDungeon(null);
+  };
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="loading">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="error">Error: {error}</div>;
   }
 
   return (
-    <div>
+    <div className="dungeons-page">
       <h2>Dungeons</h2>
       {!selectedDungeon ? (
-        <ul>
-          {dungeons.map(dungeon => (
-            <li key={dungeon._id}>
-              {dungeon.name} - {dungeon.description}
-              <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
-            </li>
-          ))}
-        </ul>
+        <div className="dungeon-list">
+          {dungeons.length > 0 ? (
+            dungeons.map(dungeon => (
+              <div key={dungeon._id} className="dungeon-item">
+                <span>{dungeon.name} {dungeon.description}</span>
+                <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
+              </div>
+            ))
+          ) : (
+            <p>No dungeons available. Complete existing dungeons to unlock more.</p>
+          )}
+        </div>
       ) : (
-        <DungeonSelection dungeons={dungeons} selectedDungeon={selectedDungeon} />
+        <DungeonSelection selectedDungeon={selectedDungeon} onBack={handleBack} />
       )}
     </div>
   );

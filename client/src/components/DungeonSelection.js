@@ -1,9 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import BattleResult from './BattleResult';
+import './DungeonSelection.css';
 
-const DungeonSelection = ({ dungeons, selectedDungeon }) => {
+const DungeonSelection = ({ selectedDungeon, onBack }) => {
   const { user } = useContext(AuthContext);
   const [units, setUnits] = useState([]);
   const [selectedUnits, setSelectedUnits] = useState({});
@@ -21,6 +21,7 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
         console.log('Fetched offensive units:', offensiveUnits);
       } catch (error) {
         console.error('Error fetching units:', error);
+        setError('Error fetching units');
       }
     };
 
@@ -40,46 +41,65 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
   };
 
   const handleBattle = async () => {
+    // Check if the selected dungeon can be attempted
+    if (selectedDungeon.level > user.highestDungeonCompleted + 1) {
+      setError('You must complete the previous dungeons before attempting this one.');
+      return;
+    }
+  
     setError(null);
     setBattleResult(null);
     setBattleLogMessages([]);
     setCurrentLogIndex(0);
-
+  
     try {
+      // Log the selected units for debugging
+      console.log('Selected Units:', selectedUnits);
+  
+      // Send the battle request to the server
       const response = await axios.post('/api/dungeons/battle', {
         userId: user._id,
         dungeonId: selectedDungeon._id,
         units: selectedUnits,
       });
+      
+      // Handle the response
       setBattleResult(response.data);
       setBattleLogMessages(response.data.battleLog);
       console.log('Battle result:', response.data);
+  
+      // Update the user's highest completed dungeon if they win
+      if (response.data.success) {
+        await axios.patch(`/api/users/${user._id}/updateDungeonCompletion`, {
+          highestDungeonCompleted: selectedDungeon.level
+        });
+      }
     } catch (error) {
       console.error('Error starting battle:', error);
       setError('Error starting battle');
     }
   };
+  
 
   useEffect(() => {
     if (battleLogMessages.length > 0 && currentLogIndex < battleLogMessages.length) {
       const timer = setTimeout(() => {
         setCurrentLogIndex(prevIndex => prevIndex + 1);
-      }, 2000); // 2 seconds delay between each log message
+      }, 2000);
 
       return () => clearTimeout(timer);
     }
   }, [battleLogMessages, currentLogIndex]);
 
   return (
-    <div>
-      <h2>Dungeon Selection</h2>
-      <div>
-        <h3>{selectedDungeon.name}</h3>
-        <p>Boss: {selectedDungeon.boss.name}</p>
-        <p>Attack: {selectedDungeon.boss.attack}</p>
-        <p>Defense: {selectedDungeon.boss.defense}</p>
-      </div>
-      <div>
+    <div className="dungeon-details">
+      <h3>Dungeon: {selectedDungeon.name}</h3>
+      <p>Boss: {selectedDungeon.boss.name}</p>
+      <p>Attack: {selectedDungeon.boss.attack}</p>
+      <p>Defense: {selectedDungeon.boss.defense}</p>
+      <p>Health: {selectedDungeon.boss.health}</p> {/* Add health display */}
+
+      <div className="unit-selection">
         <h3>Select Units to Send</h3>
         {units.length > 0 ? (
           units.map(unit => (
@@ -98,9 +118,12 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
           <p>No offensive units available.</p>
         )}
         <button onClick={handleBattle} disabled={!selectedDungeon}>Start Battle</button>
+        <button className="back-button" onClick={onBack}>Back</button>
       </div>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-      <div>
+
+      {error && <div className="error">{error}</div>}
+
+      <div className="battle-log">
         <h4>Battle Log:</h4>
         <ul>
           {battleLogMessages.slice(0, currentLogIndex).map((log, index) => (
@@ -108,6 +131,7 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
           ))}
         </ul>
       </div>
+
       {battleResult && currentLogIndex >= battleLogMessages.length && (
         <div>
           <h3>Battle Result</h3>
@@ -123,6 +147,7 @@ const DungeonSelection = ({ dungeons, selectedDungeon }) => {
               ))}
             </ul>
           </div>
+          <button id='ds-button' onClick={onBack}>Return to Dungeons</button>
         </div>
       )}
     </div>

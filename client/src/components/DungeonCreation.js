@@ -7,6 +7,7 @@ const DungeonCreation = () => {
   const [bossName, setBossName] = useState('');
   const [bossAttack, setBossAttack] = useState(0);
   const [bossDefense, setBossDefense] = useState(0);
+  const [bossHealth, setBossHealth] = useState(0); // Add boss health
   const [rewardGold, setRewardGold] = useState(0);
   const [rewardOther, setRewardOther] = useState('');
   const [dungeons, setDungeons] = useState([]);
@@ -20,7 +21,7 @@ const DungeonCreation = () => {
 
   const fetchDungeons = async () => {
     try {
-      const response = await axios.get('/api/dungeons');
+      const response = await axios.get('/api/dungeons/all');
       setDungeons(response.data);
     } catch (error) {
       console.error('Error fetching dungeons:', error);
@@ -41,6 +42,7 @@ const DungeonCreation = () => {
             name: bossName,
             attack: bossAttack,
             defense: bossDefense,
+            health: bossHealth // Add boss health
           },
           reward: {
             gold: rewardGold,
@@ -56,6 +58,7 @@ const DungeonCreation = () => {
             name: bossName,
             attack: bossAttack,
             defense: bossDefense,
+            health: bossHealth // Add boss health
           },
           reward: {
             gold: rewardGold,
@@ -79,6 +82,7 @@ const DungeonCreation = () => {
     setBossName(dungeon.boss.name);
     setBossAttack(dungeon.boss.attack);
     setBossDefense(dungeon.boss.defense);
+    setBossHealth(dungeon.boss.health); // Add boss health
     setRewardGold(dungeon.reward.gold);
     setRewardOther(dungeon.reward.other);
   };
@@ -101,6 +105,7 @@ const DungeonCreation = () => {
     setBossName('');
     setBossAttack(0);
     setBossDefense(0);
+    setBossHealth(0); // Add boss health
     setRewardGold(0);
     setRewardOther('');
   };
@@ -130,6 +135,10 @@ const DungeonCreation = () => {
           <input type="number" value={bossDefense} onChange={(e) => setBossDefense(parseInt(e.target.value))} required />
         </div>
         <div>
+          <label>Boss Health:</label> {/* Add boss health */}
+          <input type="number" value={bossHealth} onChange={(e) => setBossHealth(parseInt(e.target.value))} required />
+        </div>
+        <div>
           <label>Reward Gold:</label>
           <input type="number" value={rewardGold} onChange={(e) => setRewardGold(parseInt(e.target.value))} required />
         </div>
@@ -146,7 +155,7 @@ const DungeonCreation = () => {
       <ul>
         {dungeons.map((dungeon) => (
           <li key={dungeon._id}>
-            {dungeon.name} (Level: {dungeon.level}) - Boss: {dungeon.boss.name}, Attack: {dungeon.boss.attack}, Defense: {dungeon.boss.defense}, Reward: {dungeon.reward.gold} Gold, {dungeon.reward.other}
+            {dungeon.name} (Level: {dungeon.level}) - Boss: {dungeon.boss.name}, Attack: {dungeon.boss.attack}, Defense: {dungeon.boss.defense}, Health: {dungeon.boss.health}, Reward: {dungeon.reward.gold} Gold, {dungeon.reward.other} {/* Add boss health */}
             <button onClick={() => handleEdit(dungeon)}>Edit</button>
             <button onClick={() => handleDelete(dungeon._id)}>Delete</button>
           </li>

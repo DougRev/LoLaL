@@ -1,0 +1,88 @@
+.dungeon-details {
+    background: #2e2e2e;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .dungeon-details h3 {
+    color: #d4af37;
+  }
+  
+  .unit-selection {
+    margin-bottom: 20px;
+  }
+  
+  .unit-selection label {
+    margin-right: 10px;
+  }
+  
+  .unit-selection input {
+    margin-right: 10px;
+    width: 60px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .unit-selection button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .unit-selection button:hover {
+    background: #218838;
+  }
+  
+  .error {
+    color: red;
+  }
+  
+  .battle-log h4 {
+    color: #d4af37;
+  }
+  
+  .battle-log ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  
+  .battle-log li {
+    margin-bottom: 5px;
+  }
+  
+  .back-button {
+    background: #ff6347 !important;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: background 0.3s;
+    margin-left:5px;
+  }
+  
+  .back-button:hover {
+    background: #ff4500 !important;
+  }
+
+  #ds-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  #ds-button:hover {
+    background: #0056b3;
+  }
+  

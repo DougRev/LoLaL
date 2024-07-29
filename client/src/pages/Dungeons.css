@@ -1,0 +1,42 @@
+.dungeons-page {
+    margin: 20px;
+    font-family: Arial, sans-serif;
+    color: #ffffff;
+  }
+  
+  .dungeon-list {
+    background: #2e2e2e;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .dungeon-list h2 {
+    color: #d4af37;
+  }
+  
+  .dungeon-item {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .dungeon-item button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .dungeon-item button:hover {
+    background: #0056b3;
+  }
+  
+  .loading, .error {
+    color: red;
+  }
+  

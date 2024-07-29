@@ -25,7 +25,7 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="navbar static-navbar">
+      <div className={`navbar ${isOpen ? 'open' : ''}`}>
         <div className="logo-container">
           <img src={logo} alt="LoLaL Logo" className="logo" />
         </div>
@@ -52,9 +52,15 @@ const Navbar = () => {
           )}
         </ul>
         <button className="hamburger" onClick={toggleNavbar}>
-          <span className="hamburger-line"></span>
-          <span className="hamburger-line"></span>
-          <span className="hamburger-line"></span>
+          {isOpen ? (
+            <span className="close-icon">&times;</span>
+          ) : (
+            <>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+            </>
+          )}
         </button>
       </div>
 

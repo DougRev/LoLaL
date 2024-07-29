@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import upgrades from '../config/upgradesConfig';  // Adjust the path as needed
-import './Upgrades.css'; // Import the new CSS file
-
+import upgrades from '../config/upgradesConfig';  
+import './Upgrades.css'; 
 
 const Upgrades = ({ onUpgradePurchase }) => {
   const { user, isAuthenticated } = useContext(AuthContext);
@@ -13,7 +12,7 @@ const Upgrades = ({ onUpgradePurchase }) => {
 
   useEffect(() => {
     const fetchKingdom = async () => {
-      if (!isAuthenticated || !user?.kingdom?._id) return; // Ensure user is authenticated and kingdom exists
+      if (!isAuthenticated || !user?.kingdom?._id) return;
 
       try {
         const response = await axios.get(`/api/kingdoms/${user.kingdom._id}`);
@@ -30,14 +29,14 @@ const Upgrades = ({ onUpgradePurchase }) => {
   }, [user?.kingdom, isAuthenticated]);
 
   const handlePurchase = async (upgradeType) => {
-    if (!isAuthenticated) return; // Ensure user is authenticated
+    if (!isAuthenticated) return;
 
-    setError(null); // Clear previous errors
+    setError(null);
     try {
       const response = await axios.post('/api/upgrades/purchase-upgrade', { userId: user._id, upgradeType });
       setKingdom(response.data);
       console.log('Upgrade purchased:', response.data);
-      onUpgradePurchase(); // Trigger parent component to update
+      onUpgradePurchase();
     } catch (error) {
       console.error('Error purchasing upgrade:', error);
       if (error.response && error.response.data && error.response.data.message) {
@@ -56,55 +55,58 @@ const Upgrades = ({ onUpgradePurchase }) => {
     return <div>Error: {error}</div>;
   }
 
-  const currentBarracksUpgrade = upgrades.barracks.find(upg => upg.level === kingdom.barracks.level + 1);
-  const currentWallUpgrade = upgrades.wallFortifications.find(upg => upg.level === kingdom.wallFortifications.level + 1);
-  const currentGoldProductionUpgrade = upgrades.goldProduction.find(upg => upg.level === kingdom.goldProductionRate / 10);
-  const currentVaultUpgrade = {
-    level: kingdom.vault?.level + 1 || 1,
-    cost: (kingdom.vault?.level + 1 || 1) * 1000,
-    capacity: (kingdom.vault?.capacity + (kingdom.vault?.level + 1 || 1) * 500) || 500,
+  const displayNames = {
+    barracks: 'Barracks',
+    wallFortifications: 'Wall Fortifications',
+    goldProduction: 'Gold Production',
+    vault: 'Vault'
+  };
+
+  const getCurrentUpgrade = (upgradeType) => {
+    switch (upgradeType) {
+      case 'barracks':
+        return upgrades.barracks.find(upg => upg.level === kingdom.barracks.level + 1);
+      case 'wallFortifications':
+        return upgrades.wallFortifications.find(upg => upg.level === kingdom.wallFortifications.level + 1);
+      case 'goldProduction':
+        return upgrades.goldProduction.find(upg => upg.level === kingdom.goldProductionRate / 10 + 1);
+      case 'vault':
+        return upgrades.vault.find(upg => upg.level === (kingdom.vault?.level + 1 || 1));
+      default:
+        return null;
+    }
+  };
+
+  const isMaxLevel = (upgradeType, currentLevel) => {
+    const maxLevel = upgrades[upgradeType].length;
+    return currentLevel >= maxLevel;
   };
 
   return (
     <div>
       <h2>Kingdom Upgrades</h2>
       <div className="upgrades-container">
-        {currentBarracksUpgrade && (
-          <div className="upgrade-card" style={{ '--bg-image': `url('/images/barracks.png')` }}>
-            <h3>Barracks Upgrade</h3>
-            <p>Level: {currentBarracksUpgrade.level}</p>
-            <p>Cost: {currentBarracksUpgrade.cost} Gold</p>
-            <p>Offensive Bonus: {currentBarracksUpgrade.bonus}</p>
-            <button onClick={() => handlePurchase('barracks')}>Purchase</button>
-          </div>
-        )}
-        {currentWallUpgrade && (
-          <div className="upgrade-card" style={{ '--bg-image': `url('/images/wall-fortifications.png')` }}>
-            <h3>Wall Fortification Upgrade</h3>
-            <p>Level: {currentWallUpgrade.level}</p>
-            <p>Cost: {currentWallUpgrade.cost} Gold</p>
-            <p>Defensive Bonus: {currentWallUpgrade.bonus}</p>
-            <button onClick={() => handlePurchase('wallFortifications')}>Purchase</button>
-          </div>
-        )}
-        {currentGoldProductionUpgrade && (
-          <div className="upgrade-card" style={{ '--bg-image': `url('/images/gold-mine.png')` }}>
-            <h3>Gold Production Upgrade</h3>
-            <p>Level: {currentGoldProductionUpgrade.level}</p>
-            <p>Cost: {currentGoldProductionUpgrade.cost} Gold</p>
-            <p>Gold Production Bonus: {currentGoldProductionUpgrade.bonus} Gold per interval</p>
-            <button onClick={() => handlePurchase('goldProduction')}>Purchase</button>
-          </div>
-        )}
-        {currentVaultUpgrade && (
-          <div className="upgrade-card" style={{ '--bg-image': `url('/images/vault.png')` }}>
-            <h3>Vault Upgrade</h3>
-            <p>Level: {currentVaultUpgrade.level}</p>
-            <p>Cost: {currentVaultUpgrade.cost} Gold</p>
-            <p>Capacity: {currentVaultUpgrade.capacity} Gold</p>
-            <button onClick={() => handlePurchase('vault')}>Purchase</button>
-          </div>
-        )}
+        {Object.keys(upgrades).map((upgradeType) => {
+          const currentUpgrade = getCurrentUpgrade(upgradeType);
+          const currentLevel = kingdom[upgradeType]?.level || (upgradeType === 'goldProduction' ? kingdom.goldProductionRate / 10 : 0);
+          return (
+            <div key={upgradeType} className="upgrade-card" style={{ '--bg-image': `url('/images/${upgradeType}.png')` }}>
+              <h3>{`${displayNames[upgradeType]} Upgrade`}</h3>
+              <p>Level: {currentLevel}</p>
+              {isMaxLevel(upgradeType, currentLevel) ? (
+                <p>Max Level</p>
+              ) : (
+                currentUpgrade && (
+                  <>
+                    <p>Cost: {currentUpgrade.cost} Gold</p>
+                    <p>{upgradeType === 'goldProduction' ? `Gold Production Bonus: ${currentUpgrade.bonus} Gold per interval` : `Bonus: ${currentUpgrade.bonus}`}</p>
+                    <button onClick={() => handlePurchase(upgradeType)}>Purchase</button>
+                  </>
+                )
+              )}
+            </div>
+          );
+        })}
       </div>
       {error && <div className="error-message">{error}</div>}
     </div>
