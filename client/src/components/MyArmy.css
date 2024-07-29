@@ -1,0 +1,34 @@
+.my-army {
+    margin: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .unit-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .unit-item {
+    margin-bottom: 10px;
+  }
+  
+  .assign-input {
+    margin: 5px;
+    padding: 5px;
+    width: 50px;
+  }
+  
+  .assign-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .assign-button:hover {
+    background: #0056b3;
+  }
+  

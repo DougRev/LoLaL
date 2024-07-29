@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import './MyArmy.css';
 
 const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
   const { user } = useContext(AuthContext);
@@ -76,7 +77,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
       {units
         .filter(unit => unit.assignedTo === assignment && unit.quantity > 0)
         .map((unit, index) => (
-          <li key={`${unit.unit._id}-${index}`}>
+          <li key={`${unit.unit._id}-${index}`} className="unit-item">
             <strong>Amount: {unit.quantity}</strong> - {unit.unit.name}, Cost: {unit.unit.cost}, Attack: {unit.unit.attack}, Defense: {unit.unit.defense}
             {assignment === 'unassigned' && (
               <div>
@@ -87,9 +88,10 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
                   onChange={(e) => setAssignQuantity(Math.max(1, Math.min(e.target.value, unit.quantity)))}
                   min="1"
                   max={unit.quantity}
+                  className="assign-input"
                 />
-                <button onClick={() => handleAssign(unit.unit._id, 'offensive')}>Assign to Offensive</button>
-                <button onClick={() => handleAssign(unit.unit._id, 'defensive')}>Assign to Defensive</button>
+                <button onClick={() => handleAssign(unit.unit._id, 'offensive')} className="assign-button">Assign to Offensive</button>
+                <button onClick={() => handleAssign(unit.unit._id, 'defensive')} className="assign-button">Assign to Defensive</button>
               </div>
             )}
             {assignment !== 'unassigned' && (
@@ -101,10 +103,11 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
                   onChange={(e) => setAssignQuantity(Math.max(1, Math.min(e.target.value, unit.quantity)))}
                   min="1"
                   max={unit.quantity}
+                  className="assign-input"
                 />
-                <button onClick={() => handleReassign(unit.unit._id, assignment, 'offensive')}>Reassign to Offensive</button>
-                <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')}>Reassign to Defensive</button>
-                <button onClick={() => handleReassign(unit.unit._id, assignment, 'unassigned')}>Unassign</button>
+                <button onClick={() => handleReassign(unit.unit._id, assignment, 'offensive')} className="assign-button">Reassign to Offensive</button>
+                <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')} className="assign-button">Reassign to Defensive</button>
+                <button onClick={() => handleReassign(unit.unit._id, assignment, 'unassigned')} className="assign-button">Unassign</button>
               </div>
             )}
           </li>
@@ -125,7 +128,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
   }
 
   return (
-    <div>
+    <div className="my-army">
       <h2>My Army</h2>
       <h3>Unassigned Units</h3>
       {renderUnitList(army, 'unassigned')}

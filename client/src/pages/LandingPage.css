@@ -1,44 +1,54 @@
-.landing-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: #f5f5f5;
-  }
-  
-  .form-container {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-  }
-  
-  .toggle-button {
-    margin-top: 1rem;
-    background: #007bff;
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .toggle-button:hover {
-    background: #0056b3;
-  }
-  
-  .google-button {
-    margin-top: 1rem;
-    background: #4285F4;
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .google-button:hover {
-    background: #357ae8;
-  }
-  
+.landing-page .landing-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: url('../images/castle_wall.png') no-repeat center center;
+  background-size: cover;
+  color: #fff;
+}
+
+.landing-page .form-container {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.landing-page input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 5px;
+}
+
+.landing-page button {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 5px;
+  background: #4CAF50;
+  color: #fff;
+  cursor: pointer;
+}
+
+.landing-page button:hover {
+  background: #45a049;
+}
+
+.landing-page .toggle-button {
+  background: #008CBA;
+}
+
+.landing-page .google-button {
+  background: #db4437;
+}
+
+.landing-page h1 {
+  font-family: 'Cinzel', serif;
+  margin-bottom: 2rem;
+}

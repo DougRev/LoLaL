@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import logo from '../images/logo.png';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -23,9 +24,9 @@ const Navbar = () => {
   };
 
   return (
-    <div className={`navbar ${isOpen ? 'open' : ''}`}>
-      <div className="hamburger" onClick={toggleNavbar}>
-        {isOpen ? '✖' : '☰'}
+    <div className="navbar static-navbar">
+      <div className="logo-container">
+        <img src={logo} alt="LoLaL Logo" className="logo" />
       </div>
       <ul className="nav-links">
         {isAuthenticated && (

@@ -25,15 +25,18 @@ const LandingPage = () => {
   }, [isAuthenticated, navigate]);
 
   return (
-    <div className="landing-container">
-      <div className="form-container">
-        {isLogin ? <LoginForm /> : <RegisterForm />}
-        <button className="toggle-button" onClick={toggleForm}>
-          {isLogin ? 'Switch to Register' : 'Switch to Login'}
-        </button>
-        <button className="google-button" onClick={handleGoogleLogin}>
-          Login with Google
-        </button>
+    <div className="landing-page">
+      <div className="landing-container">
+        <div className="form-container">
+          <h1>Land of Lords and Legends</h1>
+          {isLogin ? <LoginForm /> : <RegisterForm />}
+          <button className="toggle-button" onClick={toggleForm}>
+            {isLogin ? 'Switch to Register' : 'Switch to Login'}
+          </button>
+          <button className="google-button" onClick={handleGoogleLogin}>
+            Login with Google
+          </button>
+        </div>
       </div>
     </div>
   );

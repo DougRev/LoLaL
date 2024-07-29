@@ -3,8 +3,9 @@ import { AuthContext } from '../context/AuthContext';
 import Units from '../components/Units';
 import MyArmy from '../components/MyArmy';
 import axios from 'axios';
-import './Dashboard.css';
 import Upgrades from '../components/Upgrades';
+import Navbar from '../components/Navbar';
+import './Dashboard.css';
 
 const Dashboard = () => {
   const { user, loading: userLoading, logout } = useContext(AuthContext);
@@ -14,6 +15,7 @@ const Dashboard = () => {
   const [loadingKingdom, setLoadingKingdom] = useState(true);
   const [nextGoldUpdate, setNextGoldUpdate] = useState(0);
   const [nextActionPointUpdate, setNextActionPointUpdate] = useState(0);
+  const [activeTab, setActiveTab] = useState('upgrades');
 
   const handleUnitPurchase = () => {
     setTriggerFetch(!triggerFetch);
@@ -105,28 +107,40 @@ const Dashboard = () => {
   }
 
   return (
-    <div>
-      <h1>Kingdom Dashboard</h1>
-      {user && <p>Welcome to your dashboard, {user.name}!</p>}
+    <div className="dashboard">
+      <Navbar />
+      <div className="main-content">
+        <div className="top-section">
+          <div className="key-info">
+            <h1>Kingdom Overview</h1>
+            <div className="stats">
+              <p><strong>Faction:</strong> {user && user.faction}</p>
+              <p><strong>Gold:</strong> {kingdom.gold}</p>
+              <p><strong>Vault:</strong> {kingdom.vault.capacity}</p>
+              <p><strong>Offense:</strong> {kingdom.offensiveStats}</p>
+              <p><strong>Defense:</strong> {kingdom.defensiveStats}</p>
+              <p><strong>Action Points:</strong> {kingdom.actionPoints}</p>
+            </div>
+          </div>
+          <div className="production">
+            <p><strong>Gold Production Rate:</strong> {kingdom.goldProductionRate} per minute</p>
+            <p><strong>Next Gold Update:</strong> {Math.floor(nextGoldUpdate / 1000)} seconds</p>
+            <p><strong>Next Action Point Update:</strong> {Math.floor(nextActionPointUpdate / 1000)} seconds</p>
+          </div>
+        </div>
 
-      <div id='kingdom-stats'>
-        <p><strong>Faction: </strong> {user && user.faction}</p>
-        <p><strong>Gold: </strong>{kingdom.gold}</p>
-        <p><strong>Vault: </strong>{kingdom.vault.capacity}</p>
-        <p><strong>Offense: </strong> {kingdom.offensiveStats}</p>
-        <p><strong>Defense: </strong>{kingdom.defensiveStats}</p>
-        <p><strong>Action Points: </strong>{kingdom.actionPoints}</p>
+        <div className="tabs">
+          <button className={activeTab === 'upgrades' ? 'active' : ''} onClick={() => setActiveTab('upgrades')}>Upgrades</button>
+          <button className={activeTab === 'recruiting' ? 'active' : ''} onClick={() => setActiveTab('recruiting')}>Recruiting</button>
+          <button className={activeTab === 'barracks' ? 'active' : ''} onClick={() => setActiveTab('barracks')}>Barracks</button>
+        </div>
 
+        <div className="content">
+          {activeTab === 'upgrades' && <Upgrades onUpgradePurchase={handleKingdomUpdate} />}
+          {activeTab === 'recruiting' && <Units units={units} onUnitPurchase={handleUnitPurchase} onKingdomUpdate={handleKingdomUpdate} />}
+          {activeTab === 'barracks' && <MyArmy triggerFetch={triggerFetch} onUnitAssign={handleUnitAssign} onKingdomUpdate={handleKingdomUpdate} />}
+        </div>
       </div>
-
-      <div id='action-stats'>
-        <p><strong>Gold Production Rate: </strong>{kingdom.goldProductionRate} per minute</p>
-        <p><strong>Next Gold Update: </strong>{Math.floor(nextGoldUpdate / 1000)} seconds</p>
-        <p><strong>Next Action Point Update: </strong>{Math.floor(nextActionPointUpdate / 1000)} seconds</p>
-      </div>
-      <MyArmy triggerFetch={triggerFetch} onUnitAssign={handleUnitAssign} onKingdomUpdate={handleKingdomUpdate}/>
-      <Units units={units} onUnitPurchase={handleUnitPurchase} onKingdomUpdate={handleKingdomUpdate}/>
-      <Upgrades onUpgradePurchase={handleKingdomUpdate} />
     </div>
   );
 };
