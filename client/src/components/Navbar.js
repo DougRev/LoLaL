@@ -24,33 +24,42 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar static-navbar">
-      <div className="logo-container">
-        <img src={logo} alt="LoLaL Logo" className="logo" />
+    <>
+      <div className="navbar static-navbar">
+        <div className="logo-container">
+          <img src={logo} alt="LoLaL Logo" className="logo" />
+        </div>
+        <ul className={`nav-links ${isOpen ? 'open' : ''}`}>
+          {isAuthenticated && (
+            <>
+              <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
+              <li><Link to="/vault" onClick={toggleNavbar}>Vault</Link></li>
+              <li><Link to="/dungeons" onClick={toggleNavbar}>Dungeons</Link></li>
+
+              {user && user.role === 'admin' && (
+                <li><button onClick={handleAdminNavigate}>Admin Dashboard</button></li>
+              )}
+              <li><Link to="/battlegrounds" onClick={toggleNavbar}>Battlegrounds</Link></li>
+              <li><button onClick={handleLogout}>Logout</button></li>
+            </>
+          )}
+
+          {!isAuthenticated && (
+            <>
+              <li><Link to="/login" onClick={toggleNavbar}>Login</Link></li>
+              <li><Link to="/register" onClick={toggleNavbar}>Register</Link></li>
+            </>
+          )}
+        </ul>
+        <button className="hamburger" onClick={toggleNavbar}>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+        </button>
       </div>
-      <ul className="nav-links">
-        {isAuthenticated && (
-          <>
-            <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
-            <li><Link to="/vault" onClick={toggleNavbar}>Vault</Link></li>
-            <li><Link to="/dungeons" onClick={toggleNavbar}>Dungeons</Link></li>
 
-            {user && user.role === 'admin' && (
-              <li><button onClick={handleAdminNavigate}>Admin Dashboard</button></li>
-            )}
-            <li><Link to="/battlegrounds" onClick={toggleNavbar}>Battlegrounds</Link></li>
-            <li><button onClick={handleLogout}>Logout</button></li>
-          </>
-        )}
-
-        {!isAuthenticated && (
-          <>
-            <li><Link to="/login" onClick={toggleNavbar}>Login</Link></li>
-            <li><Link to="/register" onClick={toggleNavbar}>Register</Link></li>
-          </>
-        )}
-      </ul>
-    </div>
+      {isOpen && <div className="overlay" onClick={toggleNavbar}></div>}
+    </>
   );
 };
 

@@ -5,6 +5,7 @@ import MyArmy from '../components/MyArmy';
 import axios from 'axios';
 import Upgrades from '../components/Upgrades';
 import Navbar from '../components/Navbar';
+import logo from '../images/rolling-hills.png';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -112,14 +113,16 @@ const Dashboard = () => {
       <div className="main-content">
         <div className="top-section">
           <div className="key-info">
-            <h1>Kingdom Overview</h1>
-            <div className="stats">
-              <p><strong>Faction:</strong> {user && user.faction}</p>
-              <p><strong>Gold:</strong> {kingdom.gold}</p>
-              <p><strong>Vault:</strong> {kingdom.vault.capacity}</p>
-              <p><strong>Offense:</strong> {kingdom.offensiveStats}</p>
-              <p><strong>Defense:</strong> {kingdom.defensiveStats}</p>
-              <p><strong>Action Points:</strong> {kingdom.actionPoints}</p>
+            <div>
+              <h1>Kingdom Overview</h1>
+              <div className="stats">
+                <p><strong>Faction:</strong> {user && user.faction}</p>
+                <p><strong>Gold:</strong> {kingdom.gold}</p>
+                <p><strong>Vault:</strong> {kingdom.vault.capacity}</p>
+                <p><strong>Offense:</strong> {kingdom.offensiveStats}</p>
+                <p><strong>Defense:</strong> {kingdom.defensiveStats}</p>
+                <p><strong>Action Points:</strong> {kingdom.actionPoints}</p>
+              </div>
             </div>
           </div>
           <div className="production">
