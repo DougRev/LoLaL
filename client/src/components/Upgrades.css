@@ -1,0 +1,69 @@
+.upgrades-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .upgrade-card {
+    background: #2c2c2c;
+    background-image: url(../images/rolling-hills.png);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+  
+  .upgrade-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-image) no-repeat center center/cover;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1; /* Ensure the image is behind other content */
+  }
+  
+  .upgrade-card:hover {
+    background: #444;
+    transform: translateY(-10px);
+  }
+  
+  .upgrade-card:hover::before {
+    opacity: 0.2;
+  }
+  
+  .upgrade-card h3 {
+    margin-top: 0;
+    position: relative; /* Ensure the heading is above the image */
+    z-index: 2;
+  }
+  
+  .upgrade-card p {
+    margin: 10px 0;
+    position: relative; /* Ensure the text is above the image */
+    z-index: 2;
+  }
+  
+  .upgrade-card button {
+    background: #5a5a5a;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    padding: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    position: relative; /* Ensure the button is above the image */
+    z-index: 2;
+  }
+  
+  .upgrade-card button:hover {
+    background: #102418;
+  }
+  

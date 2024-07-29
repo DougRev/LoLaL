@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import upgrades from '../config/upgradesConfig';  // Adjust the path as needed
+import './Upgrades.css'; // Import the new CSS file
+
 
 const Upgrades = ({ onUpgradePurchase }) => {
   const { user, isAuthenticated } = useContext(AuthContext);
@@ -66,56 +68,42 @@ const Upgrades = ({ onUpgradePurchase }) => {
   return (
     <div>
       <h2>Kingdom Upgrades</h2>
-      <div>
-        <h3>Barracks Upgrade</h3>
-        {currentBarracksUpgrade ? (
-          <div>
+      <div className="upgrades-container">
+        {currentBarracksUpgrade && (
+          <div className="upgrade-card" style={{ '--bg-image': `url('/images/barracks.png')` }}>
+            <h3>Barracks Upgrade</h3>
             <p>Level: {currentBarracksUpgrade.level}</p>
             <p>Cost: {currentBarracksUpgrade.cost} Gold</p>
             <p>Offensive Bonus: {currentBarracksUpgrade.bonus}</p>
             <button onClick={() => handlePurchase('barracks')}>Purchase</button>
           </div>
-        ) : (
-          <p>Max Level Reached</p>
         )}
-      </div>
-      <div>
-        <h3>Wall Fortification Upgrade</h3>
-        {currentWallUpgrade ? (
-          <div>
+        {currentWallUpgrade && (
+          <div className="upgrade-card" style={{ '--bg-image': `url('/images/wall-fortifications.png')` }}>
+            <h3>Wall Fortification Upgrade</h3>
             <p>Level: {currentWallUpgrade.level}</p>
             <p>Cost: {currentWallUpgrade.cost} Gold</p>
             <p>Defensive Bonus: {currentWallUpgrade.bonus}</p>
             <button onClick={() => handlePurchase('wallFortifications')}>Purchase</button>
           </div>
-        ) : (
-          <p>Max Level Reached</p>
         )}
-      </div>
-      <div>
-        <h3>Gold Production Upgrade</h3>
-        {currentGoldProductionUpgrade ? (
-          <div>
+        {currentGoldProductionUpgrade && (
+          <div className="upgrade-card" style={{ '--bg-image': `url('/images/gold-mine.png')` }}>
+            <h3>Gold Production Upgrade</h3>
             <p>Level: {currentGoldProductionUpgrade.level}</p>
             <p>Cost: {currentGoldProductionUpgrade.cost} Gold</p>
             <p>Gold Production Bonus: {currentGoldProductionUpgrade.bonus} Gold per interval</p>
             <button onClick={() => handlePurchase('goldProduction')}>Purchase</button>
           </div>
-        ) : (
-          <p>Max Level Reached</p>
         )}
-      </div>
-      <div>
-        <h3>Vault Upgrade</h3>
-        {currentVaultUpgrade ? (
-          <div>
+        {currentVaultUpgrade && (
+          <div className="upgrade-card" style={{ '--bg-image': `url('/images/vault.png')` }}>
+            <h3>Vault Upgrade</h3>
             <p>Level: {currentVaultUpgrade.level}</p>
             <p>Cost: {currentVaultUpgrade.cost} Gold</p>
             <p>Capacity: {currentVaultUpgrade.capacity} Gold</p>
             <button onClick={() => handlePurchase('vault')}>Purchase</button>
           </div>
-        ) : (
-          <p>Max Level Reached</p>
         )}
       </div>
       {error && <div className="error-message">{error}</div>}
