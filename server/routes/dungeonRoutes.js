@@ -138,6 +138,65 @@ const calculateTurnBasedCasualties = (units, result) => {
 
   return casualties;
 };
+const generateRune = (tier) => {
+    // Define the possible buff ranges based on the rune's tier
+    const buffRanges = {
+      common: { min: 1, max: 3 },
+      uncommon: { min: 3, max: 6 },
+      rare: { min: 6, max: 10 },
+      epic: { min: 10, max: 15 },
+      legendary: { min: 15, max: 20 }
+    };
+  
+    // Get the buff range for the given tier
+    const { min, max } = buffRanges[tier] || { min: 0, max: 0 };
+  
+    // Generate random buffs within the range
+    const randomBuff = () => Math.floor(Math.random() * (max - min + 1)) + min;
+  
+    // Create the rune object with random buffs
+    const rune = {
+      tier: tier,
+      buffs: {
+        attack: randomBuff(),
+        defense: randomBuff(),
+        speed: randomBuff(),
+        health: randomBuff()
+      }
+    };
+  
+    return rune;
+  };
+  
+  const determineRuneDrop = (reward) => {
+    const rand = Math.random();
+    let cumulative = 0;
+    for (const [tier, rate] of Object.entries(reward.runes)) {
+      cumulative += rate;
+      if (rand <= cumulative) {
+        return generateRune(tier); // Call the generateRune function
+      }
+    }
+    return null; // No rune dropped
+  };
+  
+
+  const applyRune = (user, rune) => {
+    if (!rune) return;
+    
+    user.stats.runes.attack += rune.buffs.attack;
+    user.stats.runes.defense += rune.buffs.defense;
+    user.stats.runes.speed += rune.buffs.speed;
+    user.stats.runes.health += rune.buffs.health;
+  
+    // Recalculate total stats
+    user.stats.total.attack = user.stats.base.attack + user.stats.runes.attack;
+    user.stats.total.defense = user.stats.base.defense + user.stats.runes.defense;
+    user.stats.total.speed = user.stats.base.speed + user.stats.runes.speed;
+    user.stats.total.health = user.stats.base.health + user.stats.runes.health;
+  };
+  
+  
 
 router.post('/battle', async (req, res) => {
     const { userId, dungeonId, units } = req.body;
@@ -150,58 +209,50 @@ router.post('/battle', async (req, res) => {
         return res.status(404).json({ message: 'User or dungeon not found' });
       }
   
-      const unitIds = Object.keys(units);
-      const unitDetails = await Unit.find({ _id: { $in: unitIds } });
+      const unitDetails = await Unit.find({ _id: { $in: Object.keys(units) } });
   
-      const battleUnits = unitDetails.map(unitDetail => {
-        const quantity = units[unitDetail._id.toString()];
-        return {
-          unitId: unitDetail._id.toString(),
-          name: unitDetail.name,
-          attack: unitDetail.attack,
-          defense: unitDetail.defense,
-          quantity: quantity,
-        };
-      });
+      const battleUnits = unitDetails.map(unitDetail => ({
+        unitId: unitDetail._id.toString(),
+        attack: unitDetail.attack,
+        defense: unitDetail.defense,
+        quantity: units[unitDetail._id.toString()],
+      }));
   
-      console.log('User and Dungeon fetched:', user, dungeon);
-      console.log('Battle Units:', battleUnits);
-  
-      const { result, playerAttack, playerDefense, bossAttack, bossDefense, battleLog } = calculateTurnBasedBattleOutcome(battleUnits, dungeon);
-      const casualties = calculateTurnBasedCasualties(battleUnits, result);
-  
-      console.log('Battle calculations:', { playerAttack, playerDefense, bossAttack, bossDefense, result });
-      console.log('Calculated casualties:', casualties);
-  
-      battleUnits.forEach(unit => {
-        const armyUnit = user.kingdom.army.find(armyUnit => armyUnit.unit.toString() === unit.unitId);
-        if (armyUnit) {
-          armyUnit.quantity = Math.max(0, armyUnit.quantity - casualties[unit.unitId]); // Ensure no negative values
-        }
-      });
+      const { result, battleLog } = calculateTurnBasedBattleOutcome(battleUnits, dungeon);
   
       if (result === 'win') {
         user.kingdom.gold += dungeon.reward.gold;
         if (user.highestDungeonCompleted < dungeon.level) {
-          user.highestDungeonCompleted = dungeon.level; // Update the highest dungeon completed
+          user.highestDungeonCompleted = dungeon.level;
         }
+  
+        // Determine rune drop
+        const rune = determineRuneDrop(dungeon.reward);
+        applyRune(user, rune);
+  
+        await user.kingdom.save();
+        await user.save();
+  
+        res.status(200).json({
+          message: 'You won the battle!',
+          goldEarned: dungeon.reward.gold,
+          unitsLost: calculateTurnBasedCasualties(battleUnits, result),
+          battleLog,
+          rune: rune ? rune : null,
+        });
+      } else {
+        res.status(200).json({
+          message: 'You lost the battle.',
+          goldEarned: 0,
+          unitsLost: calculateTurnBasedCasualties(battleUnits, result),
+          battleLog,
+        });
       }
-  
-      await user.kingdom.save();
-      await user.save(); // Save the user document after updating highestDungeonCompleted
-  
-      console.log('Final Kingdom State:', user.kingdom);
-  
-      res.status(200).json({
-        message: `You ${result} the battle!`,
-        goldEarned: result === 'win' ? dungeon.reward.gold : 0,
-        unitsLost: casualties,
-        battleLog: battleLog,
-      });
     } catch (err) {
       console.error('Error in battle:', err);
       res.status(500).json({ message: err.message });
     }
-  });
+  }); 
+  
   
   module.exports = router;

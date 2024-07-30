@@ -9,6 +9,26 @@ const UserSchema = new mongoose.Schema({
   faction: { type: String, enum: ['Faction1', 'Faction2', 'Faction3'] },
   kingdom: { type: mongoose.Schema.Types.ObjectId, ref: 'Kingdom' },
   highestDungeonCompleted: { type: Number, default: 0 },
+  stats: {
+    base: {
+      attack: { type: Number, default: 0 },
+      defense: { type: Number, default: 0 },
+      speed: { type: Number, default: 0 },
+      health: { type: Number, default: 100 }
+    },
+    runes: {
+      attack: { type: Number, default: 0 },
+      defense: { type: Number, default: 0 },
+      speed: { type: Number, default: 0 },
+      health: { type: Number, default: 0 }
+    },
+    total: {
+      attack: { type: Number, default: 0 },
+      defense: { type: Number, default: 0 },
+      speed: { type: Number, default: 0 },
+      health: { type: Number, default: 100 }
+    }
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

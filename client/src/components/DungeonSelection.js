@@ -134,22 +134,29 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
 
       {battleResult && currentLogIndex >= battleLogMessages.length && (
         <div>
-          <h3>Battle Result</h3>
-          <p>{battleResult.message}</p>
-          <p>Gold Earned: {battleResult.goldEarned}</p>
-          <div>
+            <h3>Battle Result</h3>
+            <p>{battleResult.message}</p>
+            <p>Gold Earned: {battleResult.goldEarned}</p>
+            <div>
             <h4>Units Lost:</h4>
             <ul>
-              {Object.entries(battleResult.unitsLost).map(([unitId, quantity]) => (
+                {Object.entries(battleResult.unitsLost).map(([unitId, quantity]) => (
                 <li key={unitId}>
-                  {units.find(unit => unit.unit._id === unitId)?.unit.name}: {quantity}
+                    {units.find(unit => unit.unit._id === unitId)?.unit.name}: {quantity}
                 </li>
-              ))}
+                ))}
             </ul>
-          </div>
-          <button id='ds-button' onClick={onBack}>Return to Dungeons</button>
+            </div>
+            {battleResult.rune && (
+            <div>
+                <h4>Rune Dropped!</h4>
+                <p>Tier: {battleResult.rune.tier}</p>
+                <p>Buffs: Attack +{battleResult.rune.buffs.attack}, Defense +{battleResult.rune.buffs.defense}, Speed +{battleResult.rune.buffs.speed}, Health +{battleResult.rune.buffs.health}</p>
+            </div>
+            )}
+            <button id='ds-button' onClick={onBack}>Return to Dungeons</button>
         </div>
-      )}
+        )}
     </div>
   );
 };
