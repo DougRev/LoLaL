@@ -15,7 +15,7 @@ const UpgradeSchema = new mongoose.Schema({
 
 const VaultSchema = new mongoose.Schema({
   level: { type: Number, default: 1 },
-  capacity: { type: Number, default: 1000 },
+  capacity: { type: Number, default: 10000 },
 });
 
 const KingdomSchema = new mongoose.Schema({

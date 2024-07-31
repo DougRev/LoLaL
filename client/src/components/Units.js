@@ -106,8 +106,8 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
               }}
             >
               <div className="unit-info">
-                <p>{unit.name} - Cost: {unit.cost}, Attack: {unit.attack}, Defense: {unit.defense}</p>
-                <div className="current-units">Current: {currentUnits[unit._id] || 0}</div>
+              {unit.name} - Cost: {unit.cost}, Attack: {unit.attack}, Defense: {unit.defense}, Health: {unit.health}, Speed: {unit.speed}
+              <div className="current-units">Current: {currentUnits[unit._id] || 0}</div>
               </div>
               <div className="quantity-input">
                 <label htmlFor={`quantity-${unit._id}`}>{unit.name}:</label>

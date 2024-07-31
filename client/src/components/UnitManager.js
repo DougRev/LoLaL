@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import './UnitManager.css';
 
 const UnitManager = ({ addUnit }) => {
   const [units, setUnits] = useState([]);
@@ -7,6 +8,8 @@ const UnitManager = ({ addUnit }) => {
   const [unitCost, setUnitCost] = useState('');
   const [unitAttack, setUnitAttack] = useState('');
   const [unitDefense, setUnitDefense] = useState('');
+  const [unitHealth, setUnitHealth] = useState(''); 
+  const [unitSpeed, setUnitSpeed] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [currentUnitId, setCurrentUnitId] = useState(null);
 
@@ -32,6 +35,8 @@ const UnitManager = ({ addUnit }) => {
         cost: unitCost,
         attack: unitAttack,
         defense: unitDefense,
+        health: unitHealth,
+        speed: unitSpeed,
       });
       console.log('Unit created:', response.data);
       fetchUnits();
@@ -48,6 +53,8 @@ const UnitManager = ({ addUnit }) => {
         cost: unitCost,
         attack: unitAttack,
         defense: unitDefense,
+        health: unitHealth,
+        speed: unitSpeed,
       });
       console.log('Unit edited:', response.data);
       fetchUnits();
@@ -72,6 +79,8 @@ const UnitManager = ({ addUnit }) => {
     setUnitCost(unit.cost);
     setUnitAttack(unit.attack);
     setUnitDefense(unit.defense);
+    setUnitHealth(unit.health);
+    setUnitSpeed(unit.speed);
     setCurrentUnitId(unit._id);
     setIsEditing(true);
   };
@@ -81,6 +90,8 @@ const UnitManager = ({ addUnit }) => {
     setUnitCost('');
     setUnitAttack('');
     setUnitDefense('');
+    setUnitHealth('');
+    setUnitSpeed('');
     setCurrentUnitId(null);
     setIsEditing(false);
   };
@@ -96,42 +107,58 @@ const UnitManager = ({ addUnit }) => {
   return (
     <div className="unit-manager">
       <h2>Unit Management</h2>
-      <input
-        type="text"
-        placeholder="Unit Name"
-        value={unitName}
-        onChange={(e) => setUnitName(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Cost"
-        value={unitCost}
-        onChange={(e) => setUnitCost(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Attack"
-        value={unitAttack}
-        onChange={(e) => setUnitAttack(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Defense"
-        value={unitDefense}
-        onChange={(e) => setUnitDefense(e.target.value)}
-      />
-      <button onClick={handleSubmit}>
-        {isEditing ? 'Save Changes' : 'Create Unit'}
-      </button>
-      <button onClick={clearForm} disabled={!isEditing}>
-        Cancel Edit
-      </button>
-      <ul>
-        {units.map(unit => (
+      <form className="unit-form" onSubmit={(e) => e.preventDefault()}>
+        <div className="form-group">
+          <label>Unit Name</label>
+          <input type="text" value={unitName} onChange={(e) => setUnitName(e.target.value)} required />
+        </div>
+        <div className="form-group">
+          <label>Cost</label>
+          <input type="number" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} required />
+        </div>
+        <div className="form-group">
+          <label>Attack</label>
+          <input type="number" value={unitAttack} onChange={(e) => setUnitAttack(e.target.value)} required />
+        </div>
+        <div className="form-group">
+          <label>Defense</label>
+          <input type="number" value={unitDefense} onChange={(e) => setUnitDefense(e.target.value)} required />
+        </div>
+        <div className="form-group">
+          <label>Health</label>
+          <input type="number" value={unitHealth} onChange={(e) => setUnitHealth(e.target.value)} required />
+        </div>
+        <div className="form-group">
+          <label>Speed</label>
+          <input type="number" value={unitSpeed} onChange={(e) => setUnitSpeed(e.target.value)} required />
+        </div>
+        <div className="form-actions">
+          <button type="button" onClick={handleSubmit}>
+            {isEditing ? 'Save Changes' : 'Create Unit'}
+          </button>
+          {isEditing && (
+            <button type="button" onClick={clearForm} className="cancel-button">
+              Cancel Edit
+            </button>
+          )}
+        </div>
+      </form>
+      <h3>Existing Units</h3>
+      <ul className="units-list">
+        {units.map((unit) => (
           <li key={unit._id}>
-            {unit.name} - Cost: {unit.cost}, Attack: {unit.attack}, Defense: {unit.defense}
-            <button onClick={() => startEditing(unit)}>Edit</button>
-            <button onClick={() => handleDeleteUnit(unit._id)}>Delete</button>
+            <div className="unit-details">
+              <span className="unit-name">{unit.name}</span>
+              <span>Cost: {unit.cost}</span>
+              <span>Attack: {unit.attack}</span>
+              <span>Defense: {unit.defense}</span>
+              <span>Health: {unit.health}</span>
+              <span>Speed: {unit.speed}</span>
+            </div>
+            <div className="unit-actions">
+              <button onClick={() => startEditing(unit)}>Edit</button>
+              <button onClick={() => handleDeleteUnit(unit._id)}>Delete</button>
+            </div>
           </li>
         ))}
       </ul>

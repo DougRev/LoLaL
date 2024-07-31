@@ -53,32 +53,19 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
     setCurrentLogIndex(0);
   
     try {
-      // Log the selected units for debugging
-      console.log('Selected Units:', selectedUnits);
-  
-      // Send the battle request to the server
-      const response = await axios.post('/api/dungeons/battle', {
-        userId: user._id,
-        dungeonId: selectedDungeon._id,
-        units: selectedUnits,
-      });
-      
-      // Handle the response
-      setBattleResult(response.data);
-      setBattleLogMessages(response.data.battleLog);
-      console.log('Battle result:', response.data);
-  
-      // Update the user's highest completed dungeon if they win
-      if (response.data.success) {
-        await axios.patch(`/api/users/${user._id}/updateDungeonCompletion`, {
-          highestDungeonCompleted: selectedDungeon.level
+        const response = await axios.post('/api/dungeons/battle', {
+          userId: user._id,
+          dungeonId: selectedDungeon._id,
+          units: selectedUnits,
         });
+        
+        setBattleResult(response.data);
+        setBattleLogMessages(response.data.battleLog);
+      } catch (error) {
+        console.error('Error starting battle:', error);
+        setError('Error starting battle');
       }
-    } catch (error) {
-      console.error('Error starting battle:', error);
-      setError('Error starting battle');
-    }
-  };
+    };
   
 
   useEffect(() => {
@@ -97,7 +84,8 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
       <p>Boss: {selectedDungeon.boss.name}</p>
       <p>Attack: {selectedDungeon.boss.attack}</p>
       <p>Defense: {selectedDungeon.boss.defense}</p>
-      <p>Health: {selectedDungeon.boss.health}</p> {/* Add health display */}
+      <p>Health: {selectedDungeon.boss.health}</p>
+      <p>Speed: {selectedDungeon.boss.speed}</p>
 
       <div className="unit-selection">
         <h3>Select Units to Send</h3>

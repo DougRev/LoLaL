@@ -16,13 +16,15 @@ router.get('/', async (req, res) => {
 
 // Create a new unit
 router.post('/', async (req, res) => {
-  const { name, cost, attack, defense } = req.body;
+  const { name, cost, attack, defense, health, speed } = req.body;
 
   const unit = new Unit({
     name,
     cost,
     attack,
     defense,
+    health,
+    speed,
   });
 
   try {
@@ -35,7 +37,7 @@ router.post('/', async (req, res) => {
 
 // Update a unit
 router.put('/:id', async (req, res) => {
-  const { name, cost, attack, defense } = req.body;
+  const { name, cost, attack, defense, health, speed } = req.body;
 
   try {
     const unit = await Unit.findById(req.params.id);
@@ -47,6 +49,8 @@ router.put('/:id', async (req, res) => {
     unit.cost = cost;
     unit.attack = attack;
     unit.defense = defense;
+    unit.health = health;
+    unit.speed = speed;
 
     const updatedUnit = await unit.save();
     res.json(updatedUnit);

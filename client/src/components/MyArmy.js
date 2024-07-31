@@ -14,6 +14,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
     if (!user || !user._id) return;
     try {
       const response = await axios.get(`/api/users/${user._id}/army`);
+      console.log('Army data:', response.data.army); // Log the entire army data
       setArmy(response.data.army);
       setLoading(false);
     } catch (error) {
@@ -22,6 +23,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchArmy();
@@ -34,16 +36,14 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
       const quantity = parseInt(assignQuantity, 10);
       if (isNaN(quantity) || quantity <= 0) return;
 
-      console.log('Assigning unit:', unitId, 'to', assignment, 'Quantity:', quantity);
-      const response = await axios.post('/api/units/assign', {
+      await axios.post('/api/units/assign', {
         userId: user._id,
         unitId,
         assignment,
         quantity,
       });
-      console.log('Assign Response:', response.data);
-      fetchArmy(); // Refetch the army to get updated data
-      onUnitAssign(); // Trigger re-fetch of kingdom data
+      fetchArmy();
+      onUnitAssign();
     } catch (error) {
       console.error('Error assigning unit:', error);
     }
@@ -56,75 +56,80 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
       const quantity = parseInt(assignQuantity, 10);
       if (isNaN(quantity) || quantity <= 0) return;
 
-      console.log('Reassigning unit:', unitId, 'from', currentAssignment, 'to', newAssignment, 'Quantity:', quantity);
-      const response = await axios.post('/api/units/reassign', {
+      await axios.post('/api/units/reassign', {
         userId: user._id,
         unitId,
         currentAssignment,
         newAssignment,
         quantity,
       });
-      console.log('Reassign Response:', response.data);
-      fetchArmy(); // Refetch the army to get updated data
-      onUnitAssign(); // Trigger re-fetch of kingdom data
+      fetchArmy();
+      onUnitAssign();
     } catch (error) {
       console.error('Error reassigning unit:', error);
     }
   };
 
+  const renderUnit = (unit, assignment) => {
+    if (!unit.unit) {
+      return (
+        <div className="unit-item" key={unit._id}>
+          <div className="unit-details">
+            <strong>Amount: {unit.quantity}</strong> - <span style={{ color: 'red' }}>Unit data unavailable</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="unit-item" key={`${unit.unit._id}-${unit.quantity}`}>
+        <div className="unit-details">
+          <strong>Amount: {unit.quantity}</strong> - {unit.unit.name}, Cost: {unit.unit.cost}, Attack: {unit.unit.attack}, Defense: {unit.unit.defense}
+        </div>
+        <div>
+          <input
+            type="number"
+            placeholder="Quantity"
+            value={assignQuantity}
+            onChange={(e) => setAssignQuantity(Math.max(1, Math.min(e.target.value, unit.quantity)))}
+            min="1"
+            max={unit.quantity}
+            className="assign-input"
+          />
+          {assignment === 'unassigned' ? (
+            <>
+              <button onClick={() => handleAssign(unit.unit._id, 'offensive')} className="assign-button">Assign to Offensive</button>
+              <button onClick={() => handleAssign(unit.unit._id, 'defensive')} className="assign-button">Assign to Defensive</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => handleReassign(unit.unit._id, assignment, 'offensive')} className="assign-button">Reassign to Offensive</button>
+              <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')} className="assign-button">Reassign to Defensive</button>
+              <button onClick={() => handleReassign(unit.unit._id, assignment, 'unassigned')} className="assign-button">Unassign</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderUnitList = (units, assignment) => (
-    <ul>
-      {units
-        .filter(unit => unit.assignedTo === assignment && unit.quantity > 0)
-        .map((unit, index) => (
-          <li key={`${unit.unit._id}-${index}`} className="unit-item">
-            <strong>Amount: {unit.quantity}</strong> - {unit.unit.name}, Cost: {unit.unit.cost}, Attack: {unit.unit.attack}, Defense: {unit.unit.defense}
-            {assignment === 'unassigned' && (
-              <div>
-                <input
-                  type="number"
-                  placeholder="Assign Quantity"
-                  value={assignQuantity}
-                  onChange={(e) => setAssignQuantity(Math.max(1, Math.min(e.target.value, unit.quantity)))}
-                  min="1"
-                  max={unit.quantity}
-                  className="assign-input"
-                />
-                <button onClick={() => handleAssign(unit.unit._id, 'offensive')} className="assign-button">Assign to Offensive</button>
-                <button onClick={() => handleAssign(unit.unit._id, 'defensive')} className="assign-button">Assign to Defensive</button>
-              </div>
-            )}
-            {assignment !== 'unassigned' && (
-              <div>
-                <input
-                  type="number"
-                  placeholder="Reassign Quantity"
-                  value={assignQuantity}
-                  onChange={(e) => setAssignQuantity(Math.max(1, Math.min(e.target.value, unit.quantity)))}
-                  min="1"
-                  max={unit.quantity}
-                  className="assign-input"
-                />
-                <button onClick={() => handleReassign(unit.unit._id, assignment, 'offensive')} className="assign-button">Reassign to Offensive</button>
-                <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')} className="assign-button">Reassign to Defensive</button>
-                <button onClick={() => handleReassign(unit.unit._id, assignment, 'unassigned')} className="assign-button">Unassign</button>
-              </div>
-            )}
-          </li>
-        ))}
-    </ul>
+    <div className="unit-container">
+      {units.filter(unit => unit.assignedTo === assignment && unit.quantity > 0)
+        .map(unit => renderUnit(unit, assignment))}
+    </div>
   );
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="loading">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="error">Error: {error}</div>;
   }
 
   if (!army.length) {
-    return <div>You have no units in your army.</div>;
+    return <div className="no-units">You have no units in your army.</div>;
   }
 
   return (

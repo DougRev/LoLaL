@@ -4,7 +4,8 @@ const bossSchema = new mongoose.Schema({
   name: { type: String, required: true },
   attack: { type: Number, required: true },
   defense: { type: Number, required: true },
-  health: { type: Number, required: true } 
+  health: { type: Number, required: true } ,
+  speed: { type: Number, required: true } ,
 });
 
 const rewardSchema = new mongoose.Schema({
