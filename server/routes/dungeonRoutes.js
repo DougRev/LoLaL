@@ -4,79 +4,138 @@ const Dungeon = require('../models/Dungeon');
 const User = require('../models/User');
 const Unit = require('../models/Unit');
 const Kingdom = require('../models/Kingdom');
+const Region = require('../models/Region');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/adminMiddleware');
 
 // Get all dungeons the user is eligible to see
 router.get('/', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    const highestDungeonCompleted = user.highestDungeonCompleted || 0;
-
-    const dungeons = await Dungeon.find({ level: { $lte: highestDungeonCompleted + 1 } });
-    res.json(dungeons);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Get all dungeons for admin
-router.get('/all', [auth, admin], async (req, res) => {
-  try {
-    const dungeons = await Dungeon.find();
-    res.json(dungeons);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Create a new dungeon
-router.post('/', [auth, admin], async (req, res) => {
-  const { name, level, boss, reward } = req.body;
-
-  try {
-    const newDungeon = new Dungeon({
-      name,
-      level,
-      boss,
-      reward
-    });
-
-    await newDungeon.save();
-    res.status(201).json(newDungeon);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Update a dungeon
-router.put('/:id', [auth, admin], async (req, res) => {
-  const { id } = req.params;
-  const { name, level, boss, reward } = req.body;
-
-  try {
-    const updatedDungeon = await Dungeon.findByIdAndUpdate(
-      id,
-      { name, level, boss, reward },
-      { new: true }
-    );
-    res.json(updatedDungeon);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Delete a dungeon
-router.delete('/:id', [auth, admin], async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await Dungeon.findByIdAndDelete(id);
-    res.json({ message: 'Dungeon deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+    try {
+      const user = await User.findById(req.user.id);
+      const highestDungeonCompleted = user.highestDungeonCompleted || 0;
+  
+      // Ensure region is populated
+      const dungeons = await Dungeon.find({ level: { $lte: highestDungeonCompleted + 1 } }).populate('region');
+      res.json(dungeons);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  // Get all dungeons for admin
+  router.get('/all', [auth, admin], async (req, res) => {
+    try {
+      const dungeons = await Dungeon.find().populate('region');
+      res.json(dungeons);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  // Get all regions
+  router.get('/regions', auth, async (req, res) => {  // Removed 'admin' middleware
+    try {
+      const regions = await Region.find();
+      res.json(regions);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  // Create a new region (Admin only)
+  router.post('/regions', [auth, admin], async (req, res) => {
+    const { name, description } = req.body;
+  
+    try {
+      const newRegion = new Region({ name, description });
+      await newRegion.save();
+      res.status(201).json(newRegion);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  // Create a new dungeon (Admin only)
+  router.post('/', [auth, admin], async (req, res) => {
+    const { name, level, boss, reward, regionId } = req.body;
+  
+    try {
+      const region = await Region.findById(regionId);
+      if (!region) return res.status(400).json({ message: 'Invalid region' });
+  
+      const newDungeon = new Dungeon({
+        name,
+        level,
+        boss,
+        reward,
+        region: region._id,
+      });
+  
+      await newDungeon.save();
+      res.status(201).json(newDungeon);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  // Update a dungeon (Admin only)
+  router.put('/:id', [auth, admin], async (req, res) => {
+    const { id } = req.params;
+    const { name, level, boss, reward, regionId } = req.body;
+  
+    try {
+      const region = await Region.findById(regionId);
+      if (!region) return res.status(400).json({ message: 'Invalid region' });
+  
+      const updatedDungeon = await Dungeon.findByIdAndUpdate(
+        id,
+        { name, level, boss, reward, region: region._id },
+        { new: true }
+      );
+      res.json(updatedDungeon);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  // Delete a dungeon (Admin only)
+  router.delete('/:id', [auth, admin], async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      await Dungeon.findByIdAndDelete(id);
+      res.json({ message: 'Dungeon deleted' });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  // Get specific dungeon details
+  router.get('/:id', auth, async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await User.findById(req.user.id);
+      const dungeon = await Dungeon.findById(id).populate('region');
+  
+      if (!dungeon) return res.status(404).json({ message: 'Dungeon not found' });
+  
+      const hasCompletedDungeon = user.highestDungeonCompleted >= dungeon.level;
+  
+      // Send limited data if not completed
+      if (!hasCompletedDungeon) {
+        return res.json({
+          name: `Dungeon ${dungeon.level}`,
+          description: 'A mysterious place. You need to explore it to know more.',
+        });
+      }
+  
+      // Send full data if completed
+      res.json(dungeon);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
 
 const MIN_DAMAGE = 1;
 
@@ -129,7 +188,14 @@ const calculateTurnBasedBattleOutcome = (units, user, dungeon) => {
   console.log('Initial turn order:', turnOrder);
 
   // Sort by speed in descending order, keeping boss first
-  turnOrder.sort((a, b) => b.speed - a.speed || (a.type === 'boss' ? -1 : 1));
+  turnOrder.sort((a, b) => {
+    if (a.speed !== b.speed) {
+      return b.speed - a.speed; // Sort by speed descending
+    }
+    if (a.type === 'boss') return -1; // Boss always goes first
+    if (b.type === 'boss') return 1;
+    return Math.random() - 0.5; // Randomize among same-speed units
+  });
 
   let playerHealth = turnOrder
     .filter(entity => entity.type === 'unit' || entity.type === 'user')
@@ -143,8 +209,10 @@ const calculateTurnBasedBattleOutcome = (units, user, dungeon) => {
   let killedUnits = [];
 
   while (playerHealth > 0 && bossHealth > 0 && !battleEnded) {
-    let totalDamageDealt = 0;
-
+    let totalUnitDamageDealt = 0;
+    let totalUserDamageDealt = 0;
+    let currentCasualties = []; // Track casualties for the current turn
+  
     for (let i = 0; i < turnOrder.length; i++) {
       const entity = turnOrder[i];
       if (entity.health > 0 && !battleEnded) {
@@ -153,41 +221,55 @@ const calculateTurnBasedBattleOutcome = (units, user, dungeon) => {
           let totalDefense = turnOrder
             .filter(e => e.type === 'unit' || e.type === 'user')
             .reduce((acc, unit) => acc + unit.defense, 0);
-          let damageReduction = totalDefense / (totalDefense + 1000);
+          let damageReduction = Math.sqrt(totalDefense) / (Math.sqrt(totalDefense) + 10);
           let damage = Math.round(dungeon.boss.attack * (1 - damageReduction));
           if (damage < MIN_DAMAGE) damage = MIN_DAMAGE;
-
+  
+          playerHealth -= damage;
+          if (playerHealth < 0) playerHealth = 0;
+          battleLog.push(`Turn ${turn}: Boss attacks for ${damage}! Player's health is now ${playerHealth}`);
+  
+          // Determine casualties, but don't log them yet
           let remainingDamage = damage;
           const livingUnits = turnOrder.filter(entity => entity.type === 'unit' && entity.health > 0);
-
           while (remainingDamage > 0 && livingUnits.length > 0) {
             const randomIndex = Math.floor(Math.random() * livingUnits.length);
             const selectedUnit = livingUnits[randomIndex];
-
+  
+            // Update the accumulated damage and adjust unit health accordingly
             if (accumulatedDamage[selectedUnit.id] + remainingDamage >= selectedUnit.health) {
               remainingDamage -= (selectedUnit.health - accumulatedDamage[selectedUnit.id]);
               accumulatedDamage[selectedUnit.id] = 0;
               selectedUnit.health = 0;
-              killedUnits.push(selectedUnit);
-              battleLog.push(`Turn ${turn}: ${selectedUnit.name} has been killed in action!`);
+              currentCasualties.push(selectedUnit); // Store casualties to log later
               livingUnits.splice(randomIndex, 1);
             } else {
               accumulatedDamage[selectedUnit.id] += remainingDamage;
               remainingDamage = 0;
             }
           }
-
-          playerHealth -= damage;
-          if (playerHealth < 0) playerHealth = 0;
-          battleLog.push(`Turn ${turn}: Boss attacks for ${damage}! Player's health is now ${playerHealth}`);
-        } else if (entity.type === 'unit' || entity.type === 'user') {
-          // Player's units or user attack logic
-          let damageReduction = dungeon.boss.defense / (dungeon.boss.defense + 1000);
+        } else if (entity.type === 'unit' && entity.health > 0) {
+          // Unit attack logic
+          let damageReduction = Math.sqrt(dungeon.boss.defense) / (Math.sqrt(dungeon.boss.defense) + 10);
           let damage = Math.round(entity.attack * (1 - damageReduction));
           if (damage < MIN_DAMAGE) damage = MIN_DAMAGE;
           bossHealth -= damage;
-          totalDamageDealt += damage;
-
+          totalUnitDamageDealt += damage;
+  
+          if (bossHealth <= 0) {
+            bossHealth = 0;
+            battleEnded = true;
+            battleLog.push(`Turn ${turn}: ${entity.name} attacks and defeats the boss!`);
+            break;
+          }
+        } else if (entity.type === 'user' && entity.health > 0) {
+          // User attack logic
+          let damageReduction = Math.sqrt(dungeon.boss.defense) / (Math.sqrt(dungeon.boss.defense) + 10);
+          let damage = Math.round(entity.attack * (1 - damageReduction));
+          if (damage < MIN_DAMAGE) damage = MIN_DAMAGE;
+          bossHealth -= damage;
+          totalUserDamageDealt += damage;
+  
           if (bossHealth <= 0) {
             bossHealth = 0;
             battleEnded = true;
@@ -197,20 +279,42 @@ const calculateTurnBasedBattleOutcome = (units, user, dungeon) => {
         }
       }
     }
-
+  
     // Log the player unit attacks if the battle hasn't ended
     if (!battleEnded) {
-      battleLog.push(`Turn ${turn}: Player's units dealt a total of ${totalDamageDealt} damage to the boss.`);
+      if (totalUnitDamageDealt > 0) {
+        battleLog.push(`Turn ${turn}: Player's units dealt a total of ${totalUnitDamageDealt} damage to the boss.`);
+      }
+      if (totalUserDamageDealt > 0) {
+        battleLog.push(`Turn ${turn}: Player dealt ${totalUserDamageDealt} damage to the boss.`);
+      }
+      battleLog.push(`Boss's remaining health: ${bossHealth}`);
     }
-
+  
+    // Log casualties after all actions
+    currentCasualties.forEach(casualty => {
+      battleLog.push(`Turn ${turn}: ${casualty.name} has been killed in action!`);
+      killedUnits.push(casualty);
+    });
+  
     turn++;
   }
+  
 
   let result = 'lose';
   if (bossHealth <= 0 && playerHealth > 0) {
     result = 'win';
   } else if (playerHealth <= 0 && bossHealth <= 0) {
     result = 'draw';
+  }
+
+  // Ensure the final log entry is clear
+  if (result === 'win') {
+    battleLog.push(`Turn ${turn}: The battle is won! The boss has been defeated.`);
+  } else if (result === 'lose') {
+    battleLog.push(`Turn ${turn}: The battle is lost. All units have been defeated.`);
+  } else if (result === 'draw') {
+    battleLog.push(`Turn ${turn}: The battle ended in a draw. Both the player and the boss are defeated.`);
   }
 
   return { result, playerHealth, bossHealth, battleLog, killedUnits };
@@ -316,11 +420,13 @@ router.post('/battle', async (req, res) => {
   try {
     // Fetch the user
     const user = await User.findById(userId).populate('kingdom');
-    console.log('Fetched user:', user);
-
+    if (!user) {
+        console.error(`User not found: ${userId}`);
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
     // Fetch the dungeon
     const dungeon = await Dungeon.findById(dungeonId);
-    console.log('Fetched dungeon:', dungeon);
 
     if (!user || !dungeon) {
       console.error('User or dungeon not found:', { user, dungeon });
@@ -329,7 +435,6 @@ router.post('/battle', async (req, res) => {
 
     // Fetch unit details
     const unitDetails = await Unit.find({ _id: { $in: Object.keys(units) } });
-    console.log('Fetched unit details:', unitDetails);
 
     // Map unit details to battle units
     const battleUnits = unitDetails.map(unitDetail => ({
@@ -341,7 +446,6 @@ router.post('/battle', async (req, res) => {
       health: unitDetail.health,
       quantity: units[unitDetail._id.toString()],
     }));
-    console.log('Prepared battle units:', battleUnits);
 
     // Calculate battle outcome
     const { result, playerHealth, bossHealth, battleLog, killedUnits } = calculateTurnBasedBattleOutcome(battleUnits, user, dungeon);
@@ -369,6 +473,8 @@ router.post('/battle', async (req, res) => {
         unitsLost,
         battleLog,
         rune: rune ? rune : null,
+        bossHealth: bossHealth, // Send remaining boss health
+        playerHealth: playerHealth, // Send remaining player health
       });
     } else {
       res.status(200).json({
@@ -376,6 +482,8 @@ router.post('/battle', async (req, res) => {
         goldEarned: 0,
         unitsLost,
         battleLog,
+        bossHealth: bossHealth, // Send remaining boss health
+        playerHealth: playerHealth, // Send remaining player health
       });
     }
   } catch (err) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import './Vault.css'; // Import the CSS file
 
 const Vault = () => {
   const { user, isAuthenticated } = useContext(AuthContext);
@@ -64,17 +65,17 @@ const Vault = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="vault-loading">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="vault-error">Error: {error}</div>;
   }
 
   return (
-    <div>
+    <div className="vault-container">
       <h2>Vault</h2>
-      <div>
+      <div className="vault-info">
         <p>Current Gold on Hand: {kingdom.gold}</p>
         <p>Current Vault Gold: {kingdom.vaultGold}</p>
         <input
@@ -82,11 +83,14 @@ const Vault = () => {
           value={amount}
           onChange={(e) => setAmount(Number(e.target.value))}
           placeholder="Enter amount"
+          className="vault-input"
         />
-        <button onClick={handleDeposit}>Deposit Gold</button>
-        <button onClick={handleWithdraw}>Withdraw Gold</button>
+        <div className="vault-buttons">
+          <button onClick={handleDeposit} className="vault-button deposit">Deposit Gold</button>
+          <button onClick={handleWithdraw} className="vault-button withdraw">Withdraw Gold</button>
+        </div>
       </div>
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="vault-error-message">{error}</div>}
     </div>
   );
 };

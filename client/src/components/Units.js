@@ -8,6 +8,7 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
   const [quantities, setQuantities] = useState({});
   const [error, setError] = useState(null);
   const [currentUnits, setCurrentUnits] = useState({});
+  const [hoveredUnitId, setHoveredUnitId] = useState(null);
   const [purchaseMessage, setPurchaseMessage] = useState('');
 
   useEffect(() => {
@@ -64,12 +65,8 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
         console.log('Purchase Response:', response.data);
       }
 
-      if (onUnitPurchase) {
-        onUnitPurchase();
-      }
-      if (onKingdomUpdate) {
-        onKingdomUpdate();
-      }
+      if (onUnitPurchase) onUnitPurchase();
+      if (onKingdomUpdate) onKingdomUpdate();
       setQuantities({});
       setError(null);
       setPurchaseMessage('Units purchased successfully!');
@@ -101,13 +98,23 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
               key={`${unit._id}-${index}`}
               className="unit-card"
               style={{
-                backgroundImage: `url(/images/${unit.name.toLowerCase()}.png)`,
-                backgroundPosition: unit.name === 'Soldier' ? 'top' : 'center' // Adjust focus based on unit name
+                backgroundImage: `url(/images/${unit.name.toLowerCase()}.png)`
               }}
+              onMouseEnter={() => setHoveredUnitId(unit._id)}
+              onMouseLeave={() => setHoveredUnitId(null)}
             >
               <div className="unit-info">
-              {unit.name} - Cost: {unit.cost}, Attack: {unit.attack}, Defense: {unit.defense}, Health: {unit.health}, Speed: {unit.speed}
-              <div className="current-units">Current: {currentUnits[unit._id] || 0}</div>
+                <h3>{unit.name} <span className="info-icon">ℹ️</span></h3>
+                {hoveredUnitId === unit._id && (
+                  <div className="info-box">
+                    <p>Cost: {unit.cost}</p>
+                    <p>Attack: {unit.attack}</p>
+                    <p>Defense: {unit.defense}</p>
+                    <p>Health: {unit.health}</p>
+                    <p>Speed: {unit.speed}</p>
+                  </div>
+                )}
+                <p className="current-units">Current: {currentUnits[unit._id] || 0}</p>
               </div>
               <div className="quantity-input">
                 <label htmlFor={`quantity-${unit._id}`}>{unit.name}:</label>
@@ -127,7 +134,6 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
       </div>
 
       <div className="purchase-section">
-        <h3>Purchase Units</h3>
         <div className="purchase-buttons">
           <button onClick={handlePurchase}>Purchase</button>
         </div>

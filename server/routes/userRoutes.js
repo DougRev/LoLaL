@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getUser, setFaction, getFactions, getUserArmy } = require('../controllers/userController');
+const { register, login, getUser, setFaction, getFactions, getUserArmy, refreshToken, } = require('../controllers/userController');
 const auth = require('../middleware/auth');
 const User = require('../models/User'); 
 
@@ -10,6 +10,7 @@ router.get('/user', auth, getUser);
 router.post('/setFaction', auth, setFaction);
 router.get('/factions', getFactions);
 router.get('/:userId/army', auth, getUserArmy);
+router.post('/refresh', refreshToken);
 
 
 // Get all users

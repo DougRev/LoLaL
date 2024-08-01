@@ -1,18 +1,52 @@
-.dungeons-page {
-    margin: 20px;
-    font-family: Arial, sans-serif;
-    color: #ffffff;
+.region-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Increased gap for better spacing */
+    justify-content: center; /* Center align regions */
   }
   
-  .dungeon-list {
-    background: #2e2e2e;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+  .region-item {
+    width: 250px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    background-size: cover; /* Ensure image covers the container */
+    background-position: center; /* Center the background image */
+    color: white; /* White text for better contrast */
+    font-weight: bold;
   }
   
-  .dungeon-list h2 {
-    color: #d4af37;
+  .region-item span {
+    z-index: 1; /* Ensure text is above the background */
+    font-size: 1.5em;
+  }
+  
+  .region-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay for readability */
+    z-index: 0; /* Behind the text */
+    transition: background 0.3s;
+  }
+  
+  .region-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .region-item:hover::before {
+    background: rgba(0, 0, 0, 0.7);
   }
   
   .dungeon-item {
@@ -20,23 +54,55 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    padding: 15px;
+    border-radius: 15px;
+    overflow: hidden;
+    background-size: cover; /* Ensure image covers the container */
+    background-position: center; /* Center the background image */
+    background-repeat: no-repeat; /* Prevent image repetition */
+  }
+  
+  .dungeon-item span {
+    z-index: 1;
+    font-size: 1.2em;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .dungeon-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(4px) brightness(0.6); /* Adjust for better readability */
+    z-index: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .dungeon-item:hover::before {
+    opacity: 0.8;
   }
   
   .dungeon-item button {
-    background: #007bff;
-    color: white;
+    z-index: 1;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.8);
     border: none;
-    padding: 10px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s;
   }
   
   .dungeon-item button:hover {
-    background: #0056b3;
+    background: rgba(255, 255, 255, 1);
   }
   
-  .loading, .error {
-    color: red;
+  /* Fallback image if specific dungeon image is not found */
+  .dungeon-item::before {
+    background: url(../images/rolling-hills.png);
   }
   

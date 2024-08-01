@@ -16,12 +16,45 @@ const generateToken = (user) => {
       role: user.role,
     },
   };
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' }); // Short-lived access token
 };
+
+const generateRefreshToken = (user) => {
+  const payload = {
+    user: {
+      id: user.id,
+    },
+  };
+  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' }); // Longer-lived refresh token
+};
+
+const refreshToken = async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(401).json({ msg: 'No token, authorization denied' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    const user = await User.findById(decoded.user.id);
+    if (!user) {
+      return res.status(401).json({ msg: 'User not found, authorization denied' });
+    }
+
+    const newAccessToken = generateToken(user);
+    res.json({ token: newAccessToken });
+  } catch (err) {
+    console.error('Refresh token is not valid', err);
+    res.status(401).json({ msg: 'Token expired or not valid' });
+  }
+};
+
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
-
+  const token = generateToken(user);
+  const refreshToken = generateRefreshToken(user);
   try {
     console.log('Register request received:', { name, email, password });
 
@@ -55,7 +88,7 @@ const register = async (req, res) => {
     await user.save();
 
     const token = generateToken(user);
-    res.json({ token });
+    res.json({ token, refreshToken });
   } catch (err) {
     console.error('Error during registration:', err.message);
     res.status(500).send('Server error');
@@ -64,7 +97,8 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-
+  const token = generateToken(user);
+  const refreshToken = generateRefreshToken(user);
   try {
     let user = await User.findOne({ email }).populate('kingdom');
     if (!user) {
@@ -77,7 +111,7 @@ const login = async (req, res) => {
     }
 
     const token = generateToken(user);
-    res.json({ token });
+    res.json({ token, refreshToken });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -157,4 +191,4 @@ const getUserArmy = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUser, setFaction, getFactions, getUserArmy };
+module.exports = { register, login, getUser, setFaction, getFactions, getUserArmy, refreshToken };

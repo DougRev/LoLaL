@@ -11,7 +11,6 @@ import Unauthorized from './components/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
 import Battlegrounds from './pages/Battlegrounds';
 import Dungeons from './pages/Dungeons';
-import Vault from './pages/Vault';
 
 import './App.css';
 
@@ -46,7 +45,6 @@ const AppContent = () => {
               <AdminDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/vault" element={<Vault />} />
           <Route path="/dungeons" element={<Dungeons />} />
           <Route path="/battlegrounds" element={<Battlegrounds />} />
           <Route path="/select-faction" element={<FactionSelection setFactionSelected={setFactionSelected} />} />

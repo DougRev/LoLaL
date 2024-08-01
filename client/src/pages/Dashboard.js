@@ -5,6 +5,7 @@ import MyArmy from '../components/MyArmy';
 import axios from 'axios';
 import Upgrades from '../components/Upgrades';
 import Navbar from '../components/Navbar';
+import Vault from '../components/Vault';
 import logo from '../images/rolling-hills.png';
 import './Dashboard.css';
 
@@ -100,7 +101,7 @@ const Dashboard = () => {
   }, []);
 
   if (userLoading || loadingKingdom) {
-    return <div>Loading...</div>;
+    return <div className='loading'>Loading...</div>;
   }
 
   if (!kingdom) {
@@ -136,12 +137,14 @@ const Dashboard = () => {
           <button className={activeTab === 'recruiting' ? 'active' : ''} onClick={() => setActiveTab('recruiting')}>Recruiting</button>
           <button className={activeTab === 'barracks' ? 'active' : ''} onClick={() => setActiveTab('barracks')}>Barracks</button>
           <button className={activeTab === 'upgrades' ? 'active' : ''} onClick={() => setActiveTab('upgrades')}>Upgrades</button>
+          <button className={activeTab === 'vault' ? 'active' : ''} onClick={() => setActiveTab('vault')}>Vault</button>
         </div>
 
         <div className="content">
           {activeTab === 'upgrades' && <Upgrades onUpgradePurchase={handleKingdomUpdate} />}
           {activeTab === 'recruiting' && <Units units={units} onUnitPurchase={handleUnitPurchase} onKingdomUpdate={handleKingdomUpdate} />}
           {activeTab === 'barracks' && <MyArmy triggerFetch={triggerFetch} onUnitAssign={handleUnitAssign} onKingdomUpdate={handleKingdomUpdate} />}
+          {activeTab === 'vault' && <Vault triggerFetch={triggerFetch} onUnitAssign={handleUnitAssign} onKingdomUpdate={handleKingdomUpdate} />}
         </div>
       </div>
     </div>

@@ -33,7 +33,6 @@ const Navbar = () => {
           {isAuthenticated && (
             <>
               <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
-              <li><Link to="/vault" onClick={toggleNavbar}>Vault</Link></li>
               <li><Link to="/dungeons" onClick={toggleNavbar}>Dungeons</Link></li>
 
               {user && user.role === 'admin' && (

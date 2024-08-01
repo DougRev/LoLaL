@@ -21,7 +21,8 @@ module.exports = async function(req, res, next) {
 
     next();
   } catch (err) {
-    console.error('Token is not valid', err);
-    res.status(401).json({ msg: 'Token is not valid' });
+    console.error('Token is not valid or expired', err);
+    res.status(401).json({ msg: 'Token expired or not valid' });
   }
-};;
+};
+

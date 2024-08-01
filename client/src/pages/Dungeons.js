@@ -11,24 +11,55 @@ const Dungeons = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [regions, setRegions] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState(null);
+
   useEffect(() => {
-    const fetchDungeons = async () => {
+    const fetchRegionsAndDungeons = async () => {
       try {
-        const response = await axios.get('/api/dungeons', { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setDungeons(response.data);
-        setLoading(false);
+        const regionsResponse = await axios.get('/api/dungeons/regions', {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        console.log('Regions fetched:', regionsResponse.data); // Debugging line
+
+        const dungeonsResponse = await axios.get('/api/dungeons', {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        console.log('Dungeons fetched:', dungeonsResponse.data); // Debugging line
+
+        setRegions(regionsResponse.data);
+        setDungeons(dungeonsResponse.data);
       } catch (error) {
-        console.error('Error fetching dungeons:', error);
+        console.error('Error fetching data:', error);
         setError(error.message);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchDungeons();
+    fetchRegionsAndDungeons();
   }, [user.token]);
 
+  const handleSelectRegion = (regionId) => {
+    console.log('Selected region ID:', regionId); // Debugging line
+    setSelectedRegion(regionId);
+    setSelectedDungeon(null); // Reset selected dungeon when region changes
+  };
+
+  const filteredDungeons = selectedRegion
+    ? dungeons.filter((dungeon) => {
+        console.log(`Dungeon region: ${dungeon.region._id}, Selected region: ${selectedRegion}`);
+        return dungeon.region && dungeon.region._id === selectedRegion;
+      })
+    : [];
+
+  useEffect(() => {
+    console.log('Filtered dungeons:', filteredDungeons); // Debugging line
+  }, [filteredDungeons]);
+
   const handleEnterDungeon = (dungeonId) => {
-    const dungeon = dungeons.find(d => d._id === dungeonId);
+    const dungeon = dungeons.find((d) => d._id === dungeonId);
+    console.log('Entering dungeon:', dungeon); // Debugging line
     setSelectedDungeon(dungeon);
   };
 
@@ -44,20 +75,53 @@ const Dungeons = () => {
     return <div className="error">Error: {error}</div>;
   }
 
+  
   return (
     <div className="dungeons-page">
       <h2>Dungeons</h2>
       {!selectedDungeon ? (
-        <div className="dungeon-list">
-          {dungeons.length > 0 ? (
-            dungeons.map(dungeon => (
-              <div key={dungeon._id} className="dungeon-item">
-                <span>{dungeon.name} {dungeon.description}</span>
-                <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
-              </div>
-            ))
+        <div>
+          {!selectedRegion ? (
+            <div className="region-list">
+              {regions.length > 0 ? (
+                regions.map((region) => {
+                  const regionBackgroundImage = `/images/regions/${region.name.replace(/\s+/g, '_').toLowerCase()}.png`;
+                  return (
+                    <div
+                      key={region._id}
+                      className="region-item"
+                      style={{ backgroundImage: `url(${regionBackgroundImage})` }}
+                      onClick={() => handleSelectRegion(region._id)}
+                    >
+                      <span>{region.name}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No regions available.</p>
+              )}
+            </div>
           ) : (
-            <p>No dungeons available. Complete existing dungeons to unlock more.</p>
+            <div className="dungeon-list">
+              {filteredDungeons.length > 0 ? (
+                filteredDungeons.map((dungeon) => {
+                  const backgroundImage = `/images/${dungeon.boss.name.replace(/\s+/g, '_').toLowerCase()}.png`;
+                  return (
+                    <div
+                      key={dungeon._id}
+                      className="dungeon-item"
+                      style={{ backgroundImage: `url(${backgroundImage})` }}
+                    >
+                      <span>{dungeon.name} {dungeon.description}</span>
+                      <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No dungeons available in this region. Select another region.</p>
+              )}
+              <button onClick={() => setSelectedRegion(null)}>Back to Regions</button>
+            </div>
           )}
         </div>
       ) : (
@@ -65,6 +129,7 @@ const Dungeons = () => {
       )}
     </div>
   );
+  
 };
 
 export default Dungeons;
