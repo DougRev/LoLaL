@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './UnitManager.css';
 
-const UnitManager = ({ addUnit }) => {
+const UnitManager = () => {
   const [units, setUnits] = useState([]);
   const [unitName, setUnitName] = useState('');
   const [unitCost, setUnitCost] = useState('');
@@ -10,11 +10,11 @@ const UnitManager = ({ addUnit }) => {
   const [unitDefense, setUnitDefense] = useState('');
   const [unitHealth, setUnitHealth] = useState(''); 
   const [unitSpeed, setUnitSpeed] = useState('');
+  const [unitImage, setUnitImage] = useState(null); // New state for image
   const [isEditing, setIsEditing] = useState(false);
   const [currentUnitId, setCurrentUnitId] = useState(null);
 
   useEffect(() => {
-    console.log('UnitManager useEffect called');
     fetchUnits();
   }, []);
 
@@ -22,23 +22,29 @@ const UnitManager = ({ addUnit }) => {
     try {
       const response = await axios.get('/api/units');
       setUnits(response.data);
-      console.log('Fetched units:', response.data);
     } catch (error) {
       console.error('Error fetching units:', error);
     }
   };
 
   const handleCreateUnit = async () => {
+    const formData = new FormData();
+    formData.append('name', unitName);
+    formData.append('cost', unitCost);
+    formData.append('attack', unitAttack);
+    formData.append('defense', unitDefense);
+    formData.append('health', unitHealth);
+    formData.append('speed', unitSpeed);
+    if (unitImage) {
+      formData.append('image', unitImage);
+    }
+
     try {
-      const response = await axios.post('/api/units', {
-        name: unitName,
-        cost: unitCost,
-        attack: unitAttack,
-        defense: unitDefense,
-        health: unitHealth,
-        speed: unitSpeed,
+      await axios.post('/api/units', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      console.log('Unit created:', response.data);
       fetchUnits();
       clearForm();
     } catch (error) {
@@ -47,16 +53,23 @@ const UnitManager = ({ addUnit }) => {
   };
 
   const handleEditUnit = async (id) => {
+    const formData = new FormData();
+    formData.append('name', unitName);
+    formData.append('cost', unitCost);
+    formData.append('attack', unitAttack);
+    formData.append('defense', unitDefense);
+    formData.append('health', unitHealth);
+    formData.append('speed', unitSpeed);
+    if (unitImage) {
+      formData.append('image', unitImage);
+    }
+
     try {
-      const response = await axios.put(`/api/units/${id}`, {
-        name: unitName,
-        cost: unitCost,
-        attack: unitAttack,
-        defense: unitDefense,
-        health: unitHealth,
-        speed: unitSpeed,
+      await axios.put(`/api/units/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      console.log('Unit edited:', response.data);
       fetchUnits();
       clearForm();
     } catch (error) {
@@ -67,7 +80,6 @@ const UnitManager = ({ addUnit }) => {
   const handleDeleteUnit = async (id) => {
     try {
       await axios.delete(`/api/units/${id}`);
-      console.log('Unit deleted');
       fetchUnits();
     } catch (error) {
       console.error('Error deleting unit:', error);
@@ -92,6 +104,7 @@ const UnitManager = ({ addUnit }) => {
     setUnitDefense('');
     setUnitHealth('');
     setUnitSpeed('');
+    setUnitImage(null); // Reset image
     setCurrentUnitId(null);
     setIsEditing(false);
   };
@@ -132,6 +145,10 @@ const UnitManager = ({ addUnit }) => {
           <label>Speed</label>
           <input type="number" value={unitSpeed} onChange={(e) => setUnitSpeed(e.target.value)} required />
         </div>
+        <div className="form-group">
+          <label>Image</label>
+          <input type="file" onChange={(e) => setUnitImage(e.target.files[0])} />
+        </div>
         <div className="form-actions">
           <button type="button" onClick={handleSubmit}>
             {isEditing ? 'Save Changes' : 'Create Unit'}
@@ -154,6 +171,7 @@ const UnitManager = ({ addUnit }) => {
               <span>Defense: {unit.defense}</span>
               <span>Health: {unit.health}</span>
               <span>Speed: {unit.speed}</span>
+              {unit.image && <img src={unit.image} alt={unit.name} />}
             </div>
             <div className="unit-actions">
               <button onClick={() => startEditing(unit)}>Edit</button>

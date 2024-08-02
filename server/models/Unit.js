@@ -7,6 +7,7 @@ const unitSchema = new mongoose.Schema({
   defense: { type: Number, required: true },
   speed: { type: Number, required: true },
   health: { type: Number, required: true },
+  image: { type: String },
 
 });
 

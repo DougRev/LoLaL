@@ -19,6 +19,9 @@ const DungeonCreation = () => {
   const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState(''); // Ensure it's always a string
   const [newRegionName, setNewRegionName] = useState('')
+  const [newRegionImage, setNewRegionImage] = useState(null); // New state for region image
+  const [image, setImage] = useState(null); // For image file
+  const [bossImage, setBossImage] = useState(null);
 
   useEffect(() => {
     const fetchRegions = async () => {
@@ -55,49 +58,37 @@ const DungeonCreation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     setError(null);
     setSuccess(null);
   
-    try {
-      if (!selectedRegion) {
-        setError('Please select a region.');
-        return;
-      }
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('level', level);
+    formData.append('boss[name]', bossName);
+    formData.append('boss[attack]', bossAttack);
+    formData.append('boss[defense]', bossDefense);
+    formData.append('boss[health]', bossHealth);
+    formData.append('boss[speed]', bossSpeed);
+    formData.append('reward[gold]', rewardGold);
+    formData.append('reward[other]', rewardOther);
+    formData.append('regionId', selectedRegion);
+    if (image) formData.append('dungeonImage', image); // Dungeon image
+    if (bossImage) formData.append('bossImage', bossImage); // Boss image
   
+    try {
       if (editingDungeon) {
-        await axios.put(`/api/dungeons/${editingDungeon._id}`, {
-          name,
-          level,
-          boss: {
-            name: bossName,
-            attack: bossAttack,
-            defense: bossDefense,
-            health: bossHealth,
-            speed: bossSpeed
-          },
-          reward: {
-            gold: rewardGold,
-            other: rewardOther,
-          },
-          regionId: selectedRegion, // Ensure this is a valid ObjectId string
+        await axios.put(`/api/dungeons/${editingDungeon._id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
         setSuccess('Dungeon updated successfully');
       } else {
-        await axios.post('/api/dungeons', {
-          name,
-          level,
-          boss: {
-            name: bossName,
-            attack: bossAttack,
-            defense: bossDefense,
-            health: bossHealth,
-            speed: bossSpeed
-          },
-          reward: {
-            gold: rewardGold,
-            other: rewardOther,
-          },
-          regionId: selectedRegion, // Ensure this is a valid ObjectId string
+        await axios.post('/api/dungeons', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
         setSuccess('Dungeon created successfully');
       }
@@ -108,7 +99,6 @@ const DungeonCreation = () => {
       setError('Error creating/updating dungeon');
     }
   };
-  
 
   const handleEdit = (dungeon) => {
     setEditingDungeon(dungeon);
@@ -121,7 +111,8 @@ const DungeonCreation = () => {
     setBossSpeed(dungeon.boss.speed || 0);
     setRewardGold(dungeon.reward.gold || 0);
     setRewardOther(dungeon.reward.other || '');
-    setSelectedRegion(dungeon.region ? dungeon.region._id : ''); // Ensure it's a string or empty
+    setSelectedRegion(dungeon.region ? dungeon.region._id : ''); // Make sure this is correctly set
+    setImage(null); // Reset the image input
   };
   
 
@@ -136,17 +127,45 @@ const DungeonCreation = () => {
     }
   };
 
+
   const handleCreateRegion = async () => {
+    setError(null);
+    setSuccess(null);
+  
+    if (!newRegionName.trim()) {
+      setError('Region name is required.');
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append('name', newRegionName);
+    if (newRegionImage) {
+      formData.append('image', newRegionImage);
+    }
+  
+    // Debugging: Log FormData contents
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+  
     try {
-      await axios.post('/api/dungeons/regions', { name: newRegionName });
+      await axios.post('/api/dungeons/regions', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+  
       setSuccess('Region created successfully');
       setNewRegionName('');
+      setNewRegionImage(null);
+  
       fetchRegions();
     } catch (error) {
       console.error('Error creating region:', error);
       setError('Error creating region');
     }
   };
+  
 
   const resetForm = () => {
     setEditingDungeon(null);
@@ -160,6 +179,8 @@ const DungeonCreation = () => {
     setRewardGold(0);
     setRewardOther('');
     setSelectedRegion('');
+    setImage(null); // Reset the image
+
   };
 
   return (
@@ -188,6 +209,10 @@ const DungeonCreation = () => {
           <input type="text" value={bossName} onChange={(e) => setBossName(e.target.value)} required />
         </div>
         <div className="form-group">
+        <label>Boss Image:</label> 
+        <input type="file" onChange={(e) => setBossImage(e.target.files[0])} />
+      </div>
+        <div className="form-group">
           <label>Boss Attack:</label>
           <input type="number" value={bossAttack} onChange={(e) => setBossAttack(parseInt(e.target.value))} required />
         </div>
@@ -211,6 +236,11 @@ const DungeonCreation = () => {
           <label>Reward Other:</label>
           <input type="text" value={rewardOther} onChange={(e) => setRewardOther(e.target.value)} />
         </div>
+        <div className="form-group">
+        <label>Dungeon Image:</label> 
+        <input type="file" onChange={(e) => setImage(e.target.files[0])} />
+      </div>
+
         
         <button type="submit">{editingDungeon ? 'Update' : 'Create'}</button>
         {editingDungeon && <button type="button" onClick={resetForm}>Cancel</button>}
@@ -223,6 +253,10 @@ const DungeonCreation = () => {
         <div className="form-group">
           <label>Region Name:</label>
           <input type="text" value={newRegionName} onChange={(e) => setNewRegionName(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Region Image:</label> 
+          <input type="file" onChange={(e) => setNewRegionImage(e.target.files[0])} />
         </div>
         <button onClick={handleCreateRegion}>Create Region</button>
       </div>

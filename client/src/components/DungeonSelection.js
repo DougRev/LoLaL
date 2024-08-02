@@ -12,7 +12,7 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
   const [error, setError] = useState(null);
   const [battleLogMessages, setBattleLogMessages] = useState([]);
   const [currentLogIndex, setCurrentLogIndex] = useState(0);
-  const [bossHealth, setBossHealth] = useState(selectedDungeon.boss.health);
+  const [bossHealth, setBossHealth] = useState(selectedDungeon?.boss?.health || 0);
   const [playerHealth, setPlayerHealth] = useState(0);
   const [maxPlayerHealth, setMaxPlayerHealth] = useState(0);
   const [healthBarsInitialized, setHealthBarsInitialized] = useState(false);
@@ -39,15 +39,15 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
     const maxQuantity = units.find(unit => unit.unit._id === unitId)?.quantity || 0;
     if (quantity > maxQuantity) quantity = maxQuantity;
 
-    setSelectedUnits({
-      ...selectedUnits,
+    setSelectedUnits(prev => ({
+      ...prev,
       [unitId]: quantity,
-    });
+    }));
     console.log('Selected units updated:', selectedUnits);
   };
 
   const calculatePlayerHealth = () => {
-    let totalHealth = user.stats.total.health;
+    let totalHealth = user?.stats?.total?.health || 0;
     units.forEach(unit => {
       if (selectedUnits[unit.unit._id]) {
         totalHealth += unit.unit.health * selectedUnits[unit.unit._id];
@@ -57,7 +57,7 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
   };
 
   const handleBattle = async () => {
-    if (selectedDungeon.level > user.highestDungeonCompleted + 1) {
+    if ((selectedDungeon?.level || 0) > (user?.highestDungeonCompleted || 0) + 1) {
       setError('You must complete the previous dungeons before attempting this one.');
       return;
     }
@@ -66,7 +66,7 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
     setBattleResult(null);
     setBattleLogMessages([]);
     setCurrentLogIndex(0);
-    setBossHealth(selectedDungeon.boss.health);
+    setBossHealth(selectedDungeon?.boss?.health || 0);
 
     const initialPlayerHealth = calculatePlayerHealth();
     setPlayerHealth(initialPlayerHealth);
@@ -132,111 +132,107 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
           }
         }
   
-      // Check if the boss is defeated and set health to 0
-      if (currentLog.includes('defeats the boss')) {
-        setBossHealth(0);
-        console.log('Boss Health set to 0 as the boss has been defeated.');
-      }
+        // Check if the boss is defeated and set health to 0
+        if (currentLog.includes('defeats the boss')) {
+          setBossHealth(0);
+          console.log('Boss Health set to 0 as the boss has been defeated.');
+        }
 
-      setCurrentLogIndex(prevIndex => prevIndex + 1);
+        setCurrentLogIndex(prevIndex => prevIndex + 1);
 
-      if (battleLogRef.current) {
-        battleLogRef.current.scrollTo({
-          top: battleLogRef.current.scrollHeight,
-          behavior: 'smooth',
-        });
-      }
-    }, delay);
+        if (battleLogRef.current) {
+          battleLogRef.current.scrollTo({
+            top: battleLogRef.current.scrollHeight,
+            behavior: 'smooth',
+          });
+        }
+      }, delay);
 
-    return () => clearTimeout(timer);
-  }
-}, [battleLogMessages, currentLogIndex, healthBarsInitialized]);
+      return () => clearTimeout(timer);
+    }
+  }, [battleLogMessages, currentLogIndex, healthBarsInitialized]);
   
-    // Determine if the user has completed this dungeon
-    const hasCompletedDungeon = user.highestDungeonCompleted >= selectedDungeon.level;
-    const bossImageName = selectedDungeon.boss.name.toLowerCase().replace(/ /g, "");
+// Safeguard against undefined selectedDungeon or its properties
+const bossName = selectedDungeon?.boss?.name || "Unknown Boss";
+const bossImageUrl = selectedDungeon?.boss?.image || "";  // Assuming there's a boss image URL
+const dungeonName = selectedDungeon?.name || "Unknown Dungeon";
+console.log('Boss Health:', bossHealth);
 
-  return (
-    <div className="dungeon-details">
-      <h3>Dungeon: {selectedDungeon.name}</h3>
-      {hasCompletedDungeon ? (
-        <>
-          <p>Boss: {selectedDungeon.boss.name}</p>
-          <img src={`/images/${bossImageName}.png`} alt={selectedDungeon.boss.name} className="boss-image" />
-          </>
+return (
+  <div className="dungeon-details">
+    <h2>{dungeonName}</h2>
+    <h3>{bossName}</h3>
+    <img src={bossImageUrl} alt={bossName} className="boss-image" />
+
+    {healthBarsInitialized && (
+      <HealthBar currentHealth={bossHealth} maxHealth={selectedDungeon.boss.health} label="Boss Health" />
+    )}
+
+    <h3>Player: {user?.name}</h3>
+    {healthBarsInitialized && (
+      <HealthBar currentHealth={playerHealth} maxHealth={maxPlayerHealth} label="Player Health" />
+    )}
+
+    <div className="unit-selection">
+      <h3>Select Units to Send</h3>
+      {units.length > 0 ? (
+        units.map(unit => (
+          <div key={unit.unit._id}>
+            <label>{unit.unit.name} (Available: {unit.quantity})</label>
+            <input
+              type="number"
+              value={selectedUnits[unit.unit._id] || 0}
+              onChange={(e) => handleUnitChange(unit.unit._id, parseInt(e.target.value))}
+              min="0"
+              max={unit.quantity}
+            />
+          </div>
+        ))
       ) : (
-        <p>Description: A mysterious place. You need to explore it to know more.</p>
+        <p>No offensive units available.</p>
       )}
-
-      {hasCompletedDungeon && healthBarsInitialized && (
-        <HealthBar currentHealth={bossHealth} maxHealth={selectedDungeon.boss.health} label="Boss Health" />
-      )}
-
-      <h3>Player: {user.name}</h3>
-      {healthBarsInitialized && (
-        <HealthBar currentHealth={playerHealth} maxHealth={maxPlayerHealth} label="Player Health" />
-      )}
-
-      <div className="unit-selection">
-        <h3>Select Units to Send</h3>
-        {units.length > 0 ? (
-          units.map(unit => (
-            <div key={unit.unit._id}>
-              <label>{unit.unit.name} (Available: {unit.quantity})</label>
-              <input
-                type="number"
-                value={selectedUnits[unit.unit._id] || 0}
-                onChange={(e) => handleUnitChange(unit.unit._id, parseInt(e.target.value))}
-                min="0"
-                max={unit.quantity}
-              />
-            </div>
-          ))
-        ) : (
-          <p>No offensive units available.</p>
-        )}
-        <button onClick={handleBattle} disabled={!selectedDungeon}>Start Battle</button>
-        <button className="back-button" onClick={onBack}>Back</button>
-      </div>
-
-      {error && <div className="error">{error}</div>}
-
-      <div className="battle-log" ref={battleLogRef}>
-        <h4>Battle Log:</h4>
-        <ul>
-          {battleLogMessages.slice(0, currentLogIndex).map((log, index) => (
-            <li key={index} className={index === currentLogIndex - 1 ? 'recent-log' : ''}>{log}</li>
-          ))}
-        </ul>
-      </div>
-
-      {battleResult && currentLogIndex >= battleLogMessages.length && (
-        <div>
-            <h3>Battle Result</h3>
-            <p>{battleResult.message}</p>
-            <p>Gold Earned: {battleResult.goldEarned}</p>
-            <div>
-            <h4>Units Lost:</h4>
-            <ul>
-                {Object.entries(battleResult.unitsLost).map(([unitId, quantity]) => (
-                <li key={unitId}>
-                    {units.find(unit => unit.unit._id === unitId)?.unit.name}: {quantity}
-                </li>
-                ))}
-            </ul>
-            </div>
-            {battleResult.rune && (
-            <div>
-                <h4>Rune Dropped!</h4>
-                <p>Tier: {battleResult.rune.tier}</p>
-                <p>Buffs: Attack +{battleResult.rune.buffs.attack}, Defense +{battleResult.rune.buffs.defense}, Speed +{battleResult.rune.buffs.speed}, Health +{battleResult.rune.buffs.health}</p>
-            </div>
-            )}
-            <button id='ds-button' onClick={onBack}>Return to Dungeons</button>
-        </div>
-        )}
+      <button onClick={handleBattle} disabled={!selectedDungeon}>Start Battle</button>
+      <button className="back-button" onClick={onBack}>Back</button>
     </div>
-  );
+
+    {error && <div className="error">{error}</div>}
+
+    <div className="battle-log" ref={battleLogRef}>
+      <h4>Battle Log:</h4>
+      <ul>
+        {battleLogMessages.slice(0, currentLogIndex).map((log, index) => (
+          <li key={index} className={index === currentLogIndex - 1 ? 'recent-log' : ''}>{log}</li>
+        ))}
+      </ul>
+    </div>
+
+    {battleResult && currentLogIndex >= battleLogMessages.length && (
+      <div>
+        <h3>Battle Result</h3>
+        <p>{battleResult.message}</p>
+        <p>Gold Earned: {battleResult.goldEarned}</p>
+        <div>
+          <h4>Units Lost:</h4>
+          <ul>
+            {Object.entries(battleResult.unitsLost).map(([unitId, quantity]) => (
+              <li key={unitId}>
+                {units.find(unit => unit.unit._id === unitId)?.unit.name || "Unknown Unit"}: {quantity}
+              </li>
+            ))}
+          </ul>
+        </div>
+        {battleResult.rune && (
+          <div>
+            <h4>Rune Dropped!</h4>
+            <p>Tier: {battleResult.rune.tier}</p>
+            <p>Buffs: Attack +{battleResult.rune.buffs.attack}, Defense +{battleResult.rune.buffs.defense}, Speed +{battleResult.rune.buffs.speed}, Health +{battleResult.rune.buffs.health}</p>
+          </div>
+        )}
+        <button id='ds-button' onClick={onBack}>Return to Dungeons</button>
+      </div>
+    )}
+  </div>
+ );
 };
 
 export default DungeonSelection;

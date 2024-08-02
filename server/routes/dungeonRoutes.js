@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer'); // For handling file uploads
+const path = require('path'); // Import path module
+const fs = require('fs'); // Import fs module
 const Dungeon = require('../models/Dungeon');
 const User = require('../models/User');
 const Unit = require('../models/Unit');
@@ -7,6 +10,10 @@ const Kingdom = require('../models/Kingdom');
 const Region = require('../models/Region');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/adminMiddleware');
+const { uploadFile, deleteFile } = require('../utils/storage'); // Import fileStorage functions
+
+// Set up multer for file upload handling
+const upload = multer({ dest: 'uploads/' }); // Temporary storage
 
 // Get all dungeons the user is eligible to see
 router.get('/', auth, async (req, res) => {
@@ -43,60 +50,126 @@ router.get('/', auth, async (req, res) => {
   });
   
   // Create a new region (Admin only)
-  router.post('/regions', [auth, admin], async (req, res) => {
-    const { name, description } = req.body;
+// Include multer middleware for handling image uploads
+router.post('/regions', [auth, admin, upload.single('image')], async (req, res) => {
+  const { name, description } = req.body;
+  const image = req.file ? req.file.path : ''; // Adjust based on your storage implementation
+
+  try {
+    const newRegion = new Region({ name, description, image });
+    await newRegion.save();
+    res.status(201).json(newRegion);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
   
-    try {
-      const newRegion = new Region({ name, description });
-      await newRegion.save();
-      res.status(201).json(newRegion);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+// Update import statement for handling multiple file uploads
+const uploadFields = upload.fields([
+  { name: 'dungeonImage', maxCount: 1 },
+  { name: 'bossImage', maxCount: 1 }
+]);
+
+// Create a new dungeon (Admin only)
+router.post('/', [auth, admin, uploadFields], async (req, res) => {
+  const { name, level, boss, reward, regionId } = req.body;
+
+  try {
+    // Fetch the region to get its name
+    const region = await Region.findById(regionId);
+    if (!region) {
+      return res.status(400).json({ message: 'Invalid region' });
     }
-  });
-  
-  // Create a new dungeon (Admin only)
-  router.post('/', [auth, admin], async (req, res) => {
-    const { name, level, boss, reward, regionId } = req.body;
-  
-    try {
-      const region = await Region.findById(regionId);
-      if (!region) return res.status(400).json({ message: 'Invalid region' });
-  
-      const newDungeon = new Dungeon({
-        name,
-        level,
-        boss,
-        reward,
-        region: region._id,
+    const regionName = region.name.toLowerCase().replace(/\s+/g, '_'); // Convert region name to lowercase and replace spaces with underscores
+
+    // Upload images to GCS
+    let dungeonImageUrl = '';
+    let bossImageUrl = '';
+
+    if (req.files['dungeonImage']) {
+      const dungeonImageFile = req.files['dungeonImage'][0];
+      const dungeonImageDestination = `${dungeonImageFile.filename}${path.extname(dungeonImageFile.originalname)}`;
+      dungeonImageUrl = await uploadFile(dungeonImageFile.path, dungeonImageDestination, regionName);
+      fs.unlink(dungeonImageFile.path, (err) => {
+        if (err) console.error('Failed to delete temporary dungeon image file:', err);
       });
-  
-      await newDungeon.save();
-      res.status(201).json(newDungeon);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
     }
-  });
-  
-  // Update a dungeon (Admin only)
-  router.put('/:id', [auth, admin], async (req, res) => {
-    const { id } = req.params;
-    const { name, level, boss, reward, regionId } = req.body;
-  
-    try {
-      const region = await Region.findById(regionId);
-      if (!region) return res.status(400).json({ message: 'Invalid region' });
-  
-      const updatedDungeon = await Dungeon.findByIdAndUpdate(
-        id,
-        { name, level, boss, reward, region: region._id },
-        { new: true }
-      );
-      res.json(updatedDungeon);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+
+    if (req.files['bossImage']) {
+      const bossImageFile = req.files['bossImage'][0];
+      const bossImageDestination = `${bossImageFile.filename}${path.extname(bossImageFile.originalname)}`;
+      bossImageUrl = await uploadFile(bossImageFile.path, bossImageDestination, regionName);
+      fs.unlink(bossImageFile.path, (err) => {
+        if (err) console.error('Failed to delete temporary boss image file:', err);
+      });
     }
-  });
+
+    // Create new dungeon with the image URLs
+    const newDungeon = new Dungeon({
+      name,
+      level,
+      boss: { ...boss, image: bossImageUrl },
+      reward,
+      region: regionId,
+      image: dungeonImageUrl,
+    });
+
+    await newDungeon.save();
+
+    res.status(201).json(newDungeon);
+  } catch (err) {
+    console.error('Error creating dungeon:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// Update a dungeon (Admin only)
+router.put('/:id', [auth, admin, upload.single('image')], async (req, res) => {
+  const { id } = req.params;
+  const { name, level, boss, reward } = req.body;
+  const regionId = req.body.regionId;
+
+  try {
+    if (!regionId) {
+      return res.status(400).json({ message: 'Region ID is required.' });
+    }
+
+    const region = await Region.findById(regionId);
+    if (!region) {
+      return res.status(400).json({ message: 'Invalid region' });
+    }
+
+    const regionName = region.name.toLowerCase().replace(/\s+/g, '_');
+    let imageUrl = '';
+
+    if (req.file) {
+      const destination = `${req.file.filename}${path.extname(req.file.originalname)}`;
+      imageUrl = await uploadFile(req.file.path, destination, regionName);
+
+      // Delete the temporary file
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Failed to delete temporary file:', err);
+      });
+    }
+
+    const updatedFields = { name, level, boss, reward, region: region._id };
+    if (imageUrl) updatedFields.image = imageUrl;
+
+    const updatedDungeon = await Dungeon.findByIdAndUpdate(
+      id,
+      updatedFields,
+      { new: true }
+    );
+
+    res.json(updatedDungeon);
+  } catch (err) {
+    console.error('Error updating dungeon:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
   
   // Delete a dungeon (Admin only)
   router.delete('/:id', [auth, admin], async (req, res) => {

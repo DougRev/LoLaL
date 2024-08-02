@@ -1,8 +1,15 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { uploadFile } = require('../utils/storage');
 const router = express.Router();
 const Unit = require('../models/Unit');
 const User = require('../models/User');
 const Kingdom = require('../models/Kingdom');
+
+// Set up multer for file upload handling
+const upload = multer({ dest: 'uploads/' });
 
 // Get all units
 router.get('/', async (req, res) => {
@@ -15,8 +22,19 @@ router.get('/', async (req, res) => {
   });
 
 // Create a new unit
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   const { name, cost, attack, defense, health, speed } = req.body;
+
+  let imageUrl = '';
+  if (req.file) {
+    const destination = `${req.file.filename}${path.extname(req.file.originalname)}`;
+    imageUrl = await uploadFile(req.file.path, destination, 'units');
+
+    // Delete the temporary file
+    fs.unlink(req.file.path, (err) => {
+      if (err) console.error('Failed to delete temporary file:', err);
+    });
+  }
 
   const unit = new Unit({
     name,
@@ -25,6 +43,7 @@ router.post('/', async (req, res) => {
     defense,
     health,
     speed,
+    image: imageUrl, // Add image URL
   });
 
   try {
@@ -36,7 +55,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a unit
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('image'), async (req, res) => {
   const { name, cost, attack, defense, health, speed } = req.body;
 
   try {
@@ -45,12 +64,24 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Unit not found' });
     }
 
+    let imageUrl = unit.image; // Keep the existing image URL
+    if (req.file) {
+      const destination = `${req.file.filename}${path.extname(req.file.originalname)}`;
+      imageUrl = await uploadFile(req.file.path, destination, 'units');
+
+      // Delete the temporary file
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Failed to delete temporary file:', err);
+      });
+    }
+
     unit.name = name;
     unit.cost = cost;
     unit.attack = attack;
     unit.defense = defense;
     unit.health = health;
     unit.speed = speed;
+    unit.image = imageUrl; // Update image URL if a new image is uploaded
 
     const updatedUnit = await unit.save();
     res.json(updatedUnit);

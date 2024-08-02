@@ -10,7 +10,6 @@ const Dungeons = () => {
   const [selectedDungeon, setSelectedDungeon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState(null);
 
@@ -20,12 +19,12 @@ const Dungeons = () => {
         const regionsResponse = await axios.get('/api/dungeons/regions', {
           headers: { Authorization: `Bearer ${user.token}` },
         });
-        console.log('Regions fetched:', regionsResponse.data); // Debugging line
+        console.log('Regions fetched:', regionsResponse.data);
 
         const dungeonsResponse = await axios.get('/api/dungeons', {
           headers: { Authorization: `Bearer ${user.token}` },
         });
-        console.log('Dungeons fetched:', dungeonsResponse.data); // Debugging line
+        console.log('Dungeons fetched:', dungeonsResponse.data);
 
         setRegions(regionsResponse.data);
         setDungeons(dungeonsResponse.data);
@@ -41,7 +40,7 @@ const Dungeons = () => {
   }, [user.token]);
 
   const handleSelectRegion = (regionId) => {
-    console.log('Selected region ID:', regionId); // Debugging line
+    console.log('Selected region ID:', regionId);
     setSelectedRegion(regionId);
     setSelectedDungeon(null); // Reset selected dungeon when region changes
   };
@@ -54,12 +53,12 @@ const Dungeons = () => {
     : [];
 
   useEffect(() => {
-    console.log('Filtered dungeons:', filteredDungeons); // Debugging line
+    console.log('Filtered dungeons:', filteredDungeons);
   }, [filteredDungeons]);
 
   const handleEnterDungeon = (dungeonId) => {
     const dungeon = dungeons.find((d) => d._id === dungeonId);
-    console.log('Entering dungeon:', dungeon); // Debugging line
+    console.log('Entering dungeon:', dungeon);
     setSelectedDungeon(dungeon);
   };
 
@@ -75,10 +74,8 @@ const Dungeons = () => {
     return <div className="error">Error: {error}</div>;
   }
 
-  
   return (
     <div className="dungeons-page">
-      <h2>Dungeons</h2>
       {!selectedDungeon ? (
         <div>
           {!selectedRegion ? (
@@ -105,14 +102,15 @@ const Dungeons = () => {
             <div className="dungeon-list">
               {filteredDungeons.length > 0 ? (
                 filteredDungeons.map((dungeon) => {
-                  const backgroundImage = `/images/${dungeon.boss.name.replace(/\s+/g, '_').toLowerCase()}.png`;
+                  const dungeonImageName = dungeon.name.replace(/\s+/g, '_').toLowerCase();
+                  const backgroundImage = `images/regions/dungeons/${dungeonImageName}.png`;
                   return (
                     <div
                       key={dungeon._id}
                       className="dungeon-item"
                       style={{ backgroundImage: `url(${backgroundImage})` }}
                     >
-                      <span>{dungeon.name} {dungeon.description}</span>
+                      <span>{dungeon.name}</span>
                       <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
                     </div>
                   );
@@ -129,7 +127,6 @@ const Dungeons = () => {
       )}
     </div>
   );
-  
 };
 
 export default Dungeons;

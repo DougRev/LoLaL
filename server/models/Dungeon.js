@@ -6,6 +6,7 @@ const bossSchema = new mongoose.Schema({
   defense: { type: Number, required: true },
   health: { type: Number, required: true },
   speed: { type: Number, required: true },
+  image: { type: String }
 });
 
 const rewardSchema = new mongoose.Schema({
@@ -24,7 +25,8 @@ const dungeonSchema = new mongoose.Schema({
   level: { type: Number, required: true },
   boss: { type: bossSchema, required: true },
   reward: { type: rewardSchema, required: true },
-  region: { type: mongoose.Schema.Types.ObjectId, ref: 'Region', required: true } // Reference to Region model
+  region: { type: mongoose.Schema.Types.ObjectId, ref: 'Region', required: true }, // Reference to Region model
+  image: { type: String }
 });
 
 module.exports = mongoose.model('Dungeon', dungeonSchema);

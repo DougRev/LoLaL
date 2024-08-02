@@ -113,3 +113,5 @@ out/
 # Files that might appear when using macOS
 .Spotlight-V100
 .Trashes
+
+server/config/service-account-file.json
