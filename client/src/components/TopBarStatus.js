@@ -8,12 +8,6 @@ import './TopBarStatus.css';
 const TopBarStatus = () => {
   const { kingdom, triggerFetchKingdom } = useContext(AuthContext);
 
-  useEffect(() => {
-    triggerFetchKingdom(); // Initial fetch
-
-    // No need for interval-based fetching; rely on event-driven updates
-    return () => {}; // No cleanup needed, just a placeholder
-  }, [triggerFetchKingdom]);
 
   return (
     <div className="top-bar-status">

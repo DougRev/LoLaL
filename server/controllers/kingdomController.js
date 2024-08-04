@@ -38,11 +38,33 @@ const updateActionPoints = async (kingdomId) => {
 
 const getKingdom = async (req, res) => {
   try {
+    console.log('Fetching kingdom with ID:', req.params.id);
     const kingdom = await updateGoldProduction(req.params.id);
+    console.log('Fetched kingdom:', kingdom);
+
+    if (!kingdom) {
+      return res.status(404).json({ message: 'Kingdom not found' });
+    }
+
     await updateActionPoints(kingdom._id);
     res.status(200).json(kingdom);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching kingdom:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getKingdomById = async (req, res) => {
+  try {
+    const kingdom = await Kingdom.findById(req.params.id).populate('owner');
+    if (!kingdom) {
+      console.error(`No kingdom found with ID: ${req.params.id}`);
+      return res.status(404).json({ message: 'Kingdom not found' });
+    }
+    res.json(kingdom);
+  } catch (err) {
+    console.error(`Error fetching kingdom with ID: ${req.params.id}`, err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -132,6 +154,7 @@ const withdrawGold = async (req, res) => {
 
 module.exports = {
   getKingdom,
+  getKingdomById,
   upgradeVault,
   depositGold,
   withdrawGold,

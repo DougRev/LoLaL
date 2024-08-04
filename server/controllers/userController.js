@@ -53,8 +53,7 @@ const refreshToken = async (req, res) => {
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
-  const token = generateToken(user);
-  const refreshToken = generateRefreshToken(user);
+
   try {
     console.log('Register request received:', { name, email, password });
 
@@ -73,6 +72,7 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
+    // Save the user
     await user.save();
 
     // Create a new kingdom for the user
@@ -87,7 +87,8 @@ const register = async (req, res) => {
     user.kingdom = kingdom._id.toString();
     await user.save();
 
-    const token = generateToken(user);
+    const token = generateToken(user); // Generate after user creation
+    const refreshToken = generateRefreshToken(user); // Generate after user creation
     res.json({ token, refreshToken });
   } catch (err) {
     console.error('Error during registration:', err.message);
@@ -97,8 +98,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-  const token = generateToken(user);
-  const refreshToken = generateRefreshToken(user);
+
   try {
     let user = await User.findOne({ email }).populate('kingdom');
     if (!user) {
@@ -110,7 +110,8 @@ const login = async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
-    const token = generateToken(user);
+    const token = generateToken(user); // Generate after validation
+    const refreshToken = generateRefreshToken(user); // Generate after validation
     res.json({ token, refreshToken });
   } catch (err) {
     console.error(err.message);

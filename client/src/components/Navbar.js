@@ -34,7 +34,7 @@ const Navbar = () => {
             <>
               <li><Link to="/dashboard" onClick={toggleNavbar}>Dashboard</Link></li>
               <li><Link to="/dungeons" onClick={toggleNavbar}>Dungeons</Link></li>
-
+              <li><Link to="/profile" onClick={toggleNavbar}>Profile</Link></li> {/* Profile link */}
               {user && user.role === 'admin' && (
                 <li><button onClick={handleAdminNavigate}>Admin Dashboard</button></li>
               )}

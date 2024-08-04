@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Battlegrounds from './pages/Battlegrounds';
 import Dungeons from './pages/Dungeons';
 import TopBarStatus from './components/TopBarStatus';
+import Profile from './pages/Profile';
 
 import './App.css';
 
@@ -21,13 +22,25 @@ const AppContent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated && user && !user.faction) {
-      setFactionSelected(false);
-      navigate('/select-faction');
-    } else if (isAuthenticated && user && user.faction) {
-      setFactionSelected(true);
+    console.log('App isAuthenticated:', isAuthenticated);
+    console.log('App user:', user);
+    console.log('App loading:', loading);
+
+    if (!loading) {
+      if (isAuthenticated) {
+        if (user && !user.faction) {
+          setFactionSelected(false);
+          console.log('User is authenticated but has not selected a faction. Redirecting to /select-faction.');
+          navigate('/select-faction');
+        } else if (user && user.faction) {
+          setFactionSelected(true);
+        }
+      } else {
+        console.log('User is not authenticated. Redirecting to landing page.');
+        navigate('/');
+      }
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, loading, navigate]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -49,6 +62,7 @@ const AppContent = () => {
           } />
           <Route path="/dungeons" element={<Dungeons />} />
           <Route path="/battlegrounds" element={<Battlegrounds />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/select-faction" element={<FactionSelection setFactionSelected={setFactionSelected} />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>

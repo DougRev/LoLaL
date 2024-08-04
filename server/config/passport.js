@@ -2,6 +2,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Kingdom = require('../models/Kingdom'); // Import Kingdom model
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -18,12 +19,30 @@ passport.use(new GoogleStrategy({
       user = new User({
         googleId: profile.id,
         email: profile.emails[0].value,
-        // No username set yet, we redirect them later to set it.
+        name: profile.displayName || profile.name.givenName || profile.name.familyName || '', // Use profile.displayName or name components
       });
+
+      if (!user.name) {
+        await user.save();
+        return done(null, { id: user._id, needsUsername: true });
+      }
+
+      await user.save();
+
+      // Create a kingdom for the new user
+      const kingdom = new Kingdom({
+        user: user._id,
+        name: `${user.name}'s Kingdom`,
+        gold: 1000, // Initial gold amount
+        // other initial fields...
+      });
+
+      await kingdom.save();
+
+      user.kingdom = kingdom._id;
       await user.save();
     }
 
-    // If user.name is not set, redirect them to set it.
     if (!user.name) {
       return done(null, { id: user._id, needsUsername: true });
     }
@@ -35,12 +54,11 @@ passport.use(new GoogleStrategy({
     return done(err, false);
   }
 }));
-  
-  passport.serializeUser((user, done) => {
-    done(null, user);
-  });
-  
-  passport.deserializeUser((user, done) => {
-    done(null, user);
-  });
-  
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});

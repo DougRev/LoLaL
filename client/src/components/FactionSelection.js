@@ -26,11 +26,13 @@ const FactionSelection = ({ setFactionSelected }) => {
       const token = localStorage.getItem('token');
       const config = { headers: { 'x-auth-token': token, 'Content-Type': 'application/json' } };
       const res = await axios.post('/api/users/setFaction', { factionName: faction.name }, config);
-
+  
       if (res.status === 200) {
         await fetchUser(); // Refresh user data after selecting faction
         setFactionSelected(true);
         navigate('/dashboard');
+      } else {
+        console.error('Error: Unable to set faction', res);
       }
     } catch (error) {
       console.error('Error selecting faction:', error);
