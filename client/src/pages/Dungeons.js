@@ -81,19 +81,16 @@ const Dungeons = () => {
           {!selectedRegion ? (
             <div className="region-list">
               {regions.length > 0 ? (
-                regions.map((region) => {
-                  const regionBackgroundImage = `/images/regions/${region.name.replace(/\s+/g, '_').toLowerCase()}.png`;
-                  return (
-                    <div
-                      key={region._id}
-                      className="region-item"
-                      style={{ backgroundImage: `url(${regionBackgroundImage})` }}
-                      onClick={() => handleSelectRegion(region._id)}
-                    >
-                      <span>{region.name}</span>
-                    </div>
-                  );
-                })
+                regions.map((region) => (
+                  <div
+                    key={region._id}
+                    className="region-item"
+                    style={{ backgroundImage: `url(${region.image})` }}
+                    onClick={() => handleSelectRegion(region._id)}
+                  >
+                    <span>{region.name}</span>
+                  </div>
+                ))
               ) : (
                 <p>No regions available.</p>
               )}
@@ -101,20 +98,16 @@ const Dungeons = () => {
           ) : (
             <div className="dungeon-list">
               {filteredDungeons.length > 0 ? (
-                filteredDungeons.map((dungeon) => {
-                  const dungeonImageName = dungeon.name.replace(/\s+/g, '_').toLowerCase();
-                  const backgroundImage = `images/regions/dungeons/${dungeonImageName}.png`;
-                  return (
-                    <div
-                      key={dungeon._id}
-                      className="dungeon-item"
-                      style={{ backgroundImage: `url(${backgroundImage})` }}
-                    >
-                      <span>{dungeon.name}</span>
-                      <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
-                    </div>
-                  );
-                })
+                filteredDungeons.map((dungeon) => (
+                  <div
+                    key={dungeon._id}
+                    className="dungeon-item"
+                    style={{ backgroundImage: `url(${dungeon.image})` }}
+                  >
+                    <span>{dungeon.name}</span>
+                    <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
+                  </div>
+                ))
               ) : (
                 <p>No dungeons available in this region. Select another region.</p>
               )}

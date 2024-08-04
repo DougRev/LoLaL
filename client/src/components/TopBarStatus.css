@@ -1,0 +1,41 @@
+.top-bar-status {
+    margin-left: 200px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    color: #fff;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    background-color: #2b2b3b;
+  }
+  
+  .stat-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .stat-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+  
+
+  .icon{
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    filter: invert(1);
+  }
+
+  .status-item {
+    background-color: #222;
+    width: fit-content;
+    padding: 10px 20px 10px 20px;
+    border-radius: 15px;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1), inset -1px -1px 3px rgba(30, 20, 65, 0.6), 0 0 5px rgba(82, 65, 65, 0.2);
+  }
+
+  .status-item svg {
+    padding-right:10px;
+  }

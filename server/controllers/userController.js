@@ -118,6 +118,8 @@ const login = async (req, res) => {
   }
 };
 
+
+
 const getUser = async (req, res) => {
   try {
     console.log('Fetching user with ID:', req.user.id);

@@ -80,7 +80,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
         </div>
       );
     }
-
+  
     return (
       <div className="unit-item" key={`${unit.unit._id}-${unit.quantity}`}>
         <div className="unit-details">
@@ -96,15 +96,21 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
             max={unit.quantity}
             className="assign-input"
           />
-          {assignment === 'unassigned' ? (
+          {assignment === 'unassigned' && (
             <>
               <button onClick={() => handleAssign(unit.unit._id, 'offensive')} className="assign-button">Assign to Offensive</button>
               <button onClick={() => handleAssign(unit.unit._id, 'defensive')} className="assign-button">Assign to Defensive</button>
             </>
-          ) : (
+          )}
+          {assignment === 'offensive' && (
+            <>
+              <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')} className="assign-button">Reassign to Defensive</button>
+              <button onClick={() => handleReassign(unit.unit._id, assignment, 'unassigned')} className="assign-button">Unassign</button>
+            </>
+          )}
+          {assignment === 'defensive' && (
             <>
               <button onClick={() => handleReassign(unit.unit._id, assignment, 'offensive')} className="assign-button">Reassign to Offensive</button>
-              <button onClick={() => handleReassign(unit.unit._id, assignment, 'defensive')} className="assign-button">Reassign to Defensive</button>
               <button onClick={() => handleReassign(unit.unit._id, assignment, 'unassigned')} className="assign-button">Unassign</button>
             </>
           )}
@@ -112,7 +118,7 @@ const MyArmy = ({ triggerFetch, onUnitAssign, onKingdomUpdate }) => {
       </div>
     );
   };
-
+  
   const renderUnitList = (units, assignment) => (
     <div className="unit-container">
       {units.filter(unit => unit.assignedTo === assignment && unit.quantity > 0)

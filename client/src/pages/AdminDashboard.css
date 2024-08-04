@@ -3,7 +3,7 @@
   padding: 20px;
 }
 
-.tabs {
+.admin-tabs {
   display: flex;
   justify-content: space-around;
   margin-bottom: 20px;

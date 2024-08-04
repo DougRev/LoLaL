@@ -1,51 +1,54 @@
 .health-bar {
-    width: 100%;
-    background-color: #444;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-    margin: 10px 0;
+  width: 100%;
+  background-color: #444;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  margin: 10px 0;
+}
+
+.health-bar-inner {
+  height: 30px;
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden; /* Ensure content does not overflow the bar */
+}
+
+.health-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+  top: 0;
+  left: 0;
+  line-height: 30px; /* Match the height of the bar for vertical centering */
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Specific styles for user and boss health bars */
+.health-bar.user .health-bar-inner {
+  background-color: #4caf50; /* Green for user */
+}
+
+.health-bar.boss .health-bar-inner {
+  background-color: #f44336; /* Red for boss */
+}
+
+/* Animation for damage flash effect */
+@keyframes flash-damage {
+  from {
+    background-color: rgba(255, 255, 255, 0.5);
   }
-  
-  .health-bar-inner {
-    height: 30px;
-    border-radius: 10px;
-    transition: width 0.5s ease-in-out;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: bold;
-    position: relative;
+  to {
+    background-color: inherit;
   }
-  
-  .health-text {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    font-size: 16px;
-  }
-  
-  /* Specific styles for user and boss health bars */
-  .health-bar.user .health-bar-inner {
-    background-color: #4caf50; /* Green for user */
-  }
-  
-  .health-bar.boss .health-bar-inner {
-    background-color: #f44336; /* Red for boss */
-  }
-  
-  /* Animation for damage flash effect */
-  @keyframes flash-damage {
-    from {
-      background-color: rgba(255, 255, 255, 0.5);
-    }
-    to {
-      background-color: inherit;
-    }
-  }
-  
-  .health-bar-inner {
-    animation: flash-damage 0.3s ease-in-out;
-  }
-  
+}
+
+.health-bar-inner {
+  animation: flash-damage 0.3s ease-in-out;
+}

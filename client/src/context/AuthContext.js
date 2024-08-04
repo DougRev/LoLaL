@@ -1,4 +1,4 @@
-import { createContext, useReducer, useEffect } from 'react';
+import { createContext, useReducer, useEffect, useCallback  } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -27,6 +27,12 @@ const authReducer = (state, action) => {
         isAuthenticated: false,
         loading: false,
         user: null,
+        kingdom: null, // Clear kingdom data on logout
+      };
+    case 'UPDATE_KINGDOM':
+      return {
+        ...state,
+        kingdom: action.payload.kingdom,
       };
     default:
       return state;
@@ -39,6 +45,7 @@ const AuthProvider = ({ children }) => {
     isAuthenticated: null,
     loading: true,
     user: null,
+    kingdom: null,
   };
 
   const [state, dispatch] = useReducer(authReducer, initialState);
@@ -51,6 +58,7 @@ const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['x-auth-token'] = res.data.token;
       const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': res.data.token } });
       dispatch({ type: 'REGISTER_SUCCESS', payload: { token: res.data.token, user: userRes.data } });
+      fetchKingdom(userRes.data.kingdom._id);
     } catch (error) {
       console.error('Registration error:', error);
     }
@@ -64,6 +72,7 @@ const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['x-auth-token'] = res.data.token;
       const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': res.data.token } });
       dispatch({ type: 'LOGIN_SUCCESS', payload: { token: res.data.token, user: userRes.data } });
+      fetchKingdom(userRes.data.kingdom._id);
     } catch (error) {
       console.error('Login error:', error);
     }
@@ -76,6 +85,7 @@ const AuthProvider = ({ children }) => {
         axios.defaults.headers.common['x-auth-token'] = token;
         const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': token } });
         dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token, user: userRes.data } });
+        fetchKingdom(userRes.data.kingdom._id);
       } else {
         dispatch({ type: 'LOGOUT' });
       }
@@ -110,6 +120,7 @@ const AuthProvider = ({ children }) => {
         const res = await axios.get('/api/users/user');
         if (res.data) {
           dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: res.data } });
+          fetchKingdom(res.data.kingdom._id);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -120,9 +131,26 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchUser();
+  const fetchKingdom = useCallback(async (kingdomId) => {
+    try {
+      const response = await axios.get(`/api/kingdoms/${kingdomId}`);
+      dispatch({ type: 'UPDATE_KINGDOM', payload: { kingdom: response.data } });
+    } catch (error) {
+      console.error('Error fetching kingdom:', error);
+    }
   }, []);
+
+  const triggerFetchKingdom = () => {
+    if (state.user && state.user.kingdom) {
+      fetchKingdom(state.user.kingdom._id);
+    }
+  };
+
+  useEffect(() => {
+    if (state.token) {
+      fetchUser();
+    }
+  }, [fetchKingdom, state.token]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -132,10 +160,8 @@ const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  console.log('AuthContext state:', state);
-
   return (
-    <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout, updateUser, fetchUser }}>
+    <AuthContext.Provider value={{ ...state, fetchKingdom, triggerFetchKingdom }}>
       {children}
     </AuthContext.Provider>
   );

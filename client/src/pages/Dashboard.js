@@ -4,9 +4,7 @@ import Units from '../components/Units';
 import MyArmy from '../components/MyArmy';
 import axios from 'axios';
 import Upgrades from '../components/Upgrades';
-import Navbar from '../components/Navbar';
 import Vault from '../components/Vault';
-import logo from '../images/rolling-hills.png';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -110,7 +108,6 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <Navbar />
       <div className="main-content">
         <div className="top-section">
           <div className="key-info">

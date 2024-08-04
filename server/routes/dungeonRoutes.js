@@ -49,20 +49,79 @@ router.get('/', auth, async (req, res) => {
     }
   });
   
-  // Create a new region (Admin only)
+// Create a new region (Admin only)
 // Include multer middleware for handling image uploads
 router.post('/regions', [auth, admin, upload.single('image')], async (req, res) => {
   const { name, description } = req.body;
-  const image = req.file ? req.file.path : ''; // Adjust based on your storage implementation
 
   try {
-    const newRegion = new Region({ name, description, image });
+    // Upload image to a publicly accessible location (e.g., GCS, S3, or a public directory)
+    let imageUrl = '';
+    if (req.file) {
+      const imageFile = req.file;
+      const destination = `${imageFile.filename}${path.extname(imageFile.originalname)}`;
+      imageUrl = await uploadFile(imageFile.path, destination, 'regions'); // Adjust this function to handle public URLs
+      
+      // Delete the temporary file
+      fs.unlink(imageFile.path, (err) => {
+        if (err) console.error('Failed to delete temporary image file:', err);
+      });
+    }
+
+    // Create a new region with the image URL
+    const newRegion = new Region({ name, description, image: imageUrl });
     await newRegion.save();
     res.status(201).json(newRegion);
   } catch (err) {
+    console.error('Error creating region:', err);
     res.status(500).json({ message: err.message });
   }
 });
+
+// Update a region (Admin only)
+router.put('/regions/:id', [auth, admin, upload.single('image')], async (req, res) => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+
+  try {
+    // Find the existing region
+    const region = await Region.findById(id);
+    if (!region) {
+      return res.status(404).json({ message: 'Region not found' });
+    }
+
+    // Upload new image if provided
+    let imageUrl = region.image; // Keep the existing image URL if no new image is uploaded
+    if (req.file) {
+      const imageFile = req.file;
+      const destination = `${imageFile.filename}${path.extname(imageFile.originalname)}`;
+      imageUrl = await uploadFile(imageFile.path, destination, 'regions');
+
+      // Delete the temporary file
+      fs.unlink(imageFile.path, (err) => {
+        if (err) console.error('Failed to delete temporary image file:', err);
+      });
+
+      // Optionally delete the old image file from the storage (if applicable)
+      // await deleteFile(region.image); // Implement deleteFile if needed
+    }
+
+    // Update region details
+    region.name = name || region.name;
+    region.description = description || region.description;
+    region.image = imageUrl;
+
+    // Save the updated region
+    await region.save();
+
+    res.json(region);
+  } catch (err) {
+    console.error('Error updating region:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
   
 // Update import statement for handling multiple file uploads
 const uploadFields = upload.fields([

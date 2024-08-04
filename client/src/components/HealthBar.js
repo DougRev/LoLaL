@@ -12,7 +12,7 @@ const HealthBar = ({ currentHealth, maxHealth, label }) => {
         style={{ width: `${healthPercentage}%` }}
       >
         <span className="health-text">
-          {label}: {currentHealth} / {maxHealth}
+          {currentHealth}
         </span>
       </div>
     </div>

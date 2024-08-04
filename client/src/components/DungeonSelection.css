@@ -1,8 +1,33 @@
 .dungeon-details {
-  background: #2e2e2e;
+  background-size: cover;
+  background-position: center;
+  position: relative; /* Required for the pseudo-element */
   padding: 15px;
   border-radius: 10px;
   margin-bottom: 20px;
+  transition: opacity 0.5s ease-in-out;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.dungeon-details::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+  border-radius: 10px; /* Match the border radius */
+  z-index: 1; /* Ensure it covers the content */
+}
+
+.dungeon-details > * {
+  position: relative;
+  z-index: 2; /* Ensure content is above the overlay */
+}
+
+.dungeon-details.fade {
+  opacity: 0; /* Fade out */
 }
 
 .dungeon-details h3 {
@@ -70,12 +95,116 @@ button:hover {
   background-color: #0056b3;
 }
 
-.dungeon-details img.boss-image {
-  width: 100%;
-  max-height: 350px; /* Set a max height */
-  object-fit: cover; /* Ensure the image covers the area without distortion */
-  object-position: center top; /* Adjust the focus of the image */
-  border-radius: 10px; /* Optional: Add rounded corners to the image */
-  margin: 10px 0;
+.battle-result-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
+.battle-result-popup h2 {
+  margin-bottom: 15px;
+}
+
+.battle-result-popup p {
+  margin: 5px 0;
+}
+
+.battle-result-popup button {
+  margin-top: 15px;
+}
+
+.boss-image {
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border: 2px solid #d4af37; /* Add border around the image */
+}
+
+.health-bar {
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.health-bar-inner {
+  height: 30px;
+  border-radius: 5px;
+  transition: width 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add subtle shadow */
+}
+
+.health-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 18px; /* Increase font size */
+  line-height: 30px;
+  color: #fff;
+  font-weight: bold; /* Make text bold */
+}
+
+/*** Unit Card ***/
+
+.ds-unit-selection {
+  margin-top: 20px;
+}
+
+.ds-unit-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.ds-unit-card {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  width: calc(33.333% - 10px); /* Adjust based on the number of units per row */
+  min-width: 200px;
+}
+
+.unit-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 5px;
+  margin-right: 15px;
+  object-fit: cover;
+}
+
+.unit-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.unit-name {
+  font-weight: bold;
+  color: #d4af37;
+}
+
+.unit-available {
+  color: #aaa;
+}
+
+.unit-input {
+  margin-top: 5px;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}

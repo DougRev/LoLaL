@@ -11,6 +11,7 @@ import Unauthorized from './components/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
 import Battlegrounds from './pages/Battlegrounds';
 import Dungeons from './pages/Dungeons';
+import TopBarStatus from './components/TopBarStatus';
 
 import './App.css';
 
@@ -35,6 +36,7 @@ const AppContent = () => {
   return (
     <>
       {isAuthenticated && <Navbar />}
+      {isAuthenticated && <TopBarStatus />}
       <div className={`content ${isAuthenticated ? 'authenticated' : ''}`}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
