@@ -9,16 +9,17 @@
   margin-bottom: 20px;
 }
 
-.tabs button {
-  padding: 10px 20px;
+.admin-tabs button {
+  padding: 10px;
+  margin-right: 10px;
   border: none;
-  background-color: #1e3958;
+  background-color: #23c0d8;
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s;
 }
 
-.tabs button.active, .tabs button:hover {
+.admin-tabs button.active, .admin-tabs button:hover {
   background-color: #2672c4;
   color: white;
 }

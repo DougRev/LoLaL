@@ -70,25 +70,54 @@ const AuthProvider = ({ children }) => {
     console.log('Stored tokens:', { token, refreshToken });
   };
 
-  const refreshAccessToken = useCallback(async () => {
+
+   // Function to refresh Google OAuth token
+   const refreshGoogleToken = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
-        console.log('No refresh token found, logging out...');
         return dispatch({ type: 'LOGOUT' });
       }
 
-      console.log('Refreshing access token with:', refreshToken);
-      const res = await axios.post('/api/users/refresh-token', { token: refreshToken });
-      const { token, refreshToken: newRefreshToken } = res.data;
-      storeTokens(token, newRefreshToken);
-      setAuthHeaders(token);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, refreshToken: newRefreshToken, user: state.user } });
+      // Make a request to Google's OAuth token endpoint to refresh the token
+      const res = await axios.post('https://oauth2.googleapis.com/token', {
+        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+        client_secret: process.env.REACT_APP_GOOGLE_CLIENT_SECRET,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      });
+
+      const { access_token, refresh_token } = res.data;
+      storeTokens(access_token, refresh_token || refreshToken);  // Google might not always return a new refresh token
+      setAuthHeaders(access_token);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { token: access_token, refreshToken: refresh_token || refreshToken, user: state.user } });
     } catch (error) {
-      console.error('Error refreshing access token:', error);
+      console.error('Error refreshing Google token:', error);
       dispatch({ type: 'LOGOUT' });
     }
   }, [state.user]);
+
+  const refreshAccessToken = useCallback(async () => {
+    // If the user is logged in via Google OAuth
+    if (state.user?.isGoogleUser) {
+      await refreshGoogleToken();
+    } else {
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+          return dispatch({ type: 'LOGOUT' });
+        }
+
+        const res = await axios.post('/api/users/refresh-token', { token: refreshToken });
+        const { token, refreshToken: newRefreshToken } = res.data;
+        storeTokens(token, newRefreshToken);
+        setAuthHeaders(token);
+        dispatch({ type: 'LOGIN_SUCCESS', payload: { token, refreshToken: newRefreshToken, user: state.user } });
+      } catch (error) {
+        dispatch({ type: 'LOGOUT' });
+      }
+    }
+  }, [state.user, refreshGoogleToken]);
 
   const register = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
@@ -131,7 +160,7 @@ const AuthProvider = ({ children }) => {
         const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': token } });
         if (userRes.data) {
           const { _id, name, email, role, kingdom, faction } = userRes.data;
-          const user = { _id, name, email, role, kingdom, faction };
+          const user = { _id, name, email, role, kingdom, faction, isGoogleUser: true };
           dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token, refreshToken: state.refreshToken, user } });
   
           if (kingdom && kingdom._id) {
@@ -153,8 +182,8 @@ const AuthProvider = ({ children }) => {
       dispatch({ type: 'LOGOUT' });
     }
   };
-  
 
+  
   const clearTokens = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
@@ -219,11 +248,14 @@ const AuthProvider = ({ children }) => {
       clearTokens();
       setAuthHeaders(null);
       dispatch({ type: 'LOGOUT' });
-      window.location.href = '/';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 200); // 200ms delay for cleanup
     } catch (error) {
       console.error('Logout error:', error);
     }
   }, []);
+  
 
   useEffect(() => {
     if (state.loading) {
@@ -242,6 +274,23 @@ const AuthProvider = ({ children }) => {
       googleLogin(token);
     }
   }, []);
+
+  useEffect(() => {
+    // Interceptor to check token expiration and refresh if necessary
+    const requestInterceptor = axios.interceptors.request.use(async (config) => {
+      const token = localStorage.getItem('token');
+      if (checkTokenExpiration(token)) {
+        await refreshAccessToken();
+      }
+      return config;
+    }, (error) => {
+      return Promise.reject(error);
+    });
+
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
+  }, [refreshAccessToken]);
 
   return (
     <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout, fetchUser, fetchKingdom }}>

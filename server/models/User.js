@@ -6,10 +6,16 @@ const UserSchema = new mongoose.Schema({
   password: { type: String },
   googleId: { type: String, unique: true, sparse: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  faction: { type: String, enum: ['Faction1', 'Faction2', 'Faction3'] },
+  faction: { type: mongoose.Schema.Types.ObjectId, ref: 'Faction' }, 
   kingdom: { type: mongoose.Schema.Types.ObjectId, ref: 'Kingdom' },
-  highestDungeonCompleted: { type: Number, default: 0 },
-  stats: {
+  highestRegionCompleted: { type: String, default: null},
+  highestDungeonCompleted: [
+    {
+      regionId: { type: String }, 
+      dungeonId: { type: String }
+    }
+  ],
+    stats: {
     base: {
       attack: { type: Number, default: 0 },
       defense: { type: Number, default: 0 },

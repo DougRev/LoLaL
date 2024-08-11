@@ -7,9 +7,12 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session'); 
 const auth = require('./middleware/auth');
 const adminAuth = require('./middleware/adminMiddleware');
+const Faction = require('./models/Faction');
 
 const unitRoutes = require('./routes/unitRoutes');
 const dungeonRoutes = require('./routes/dungeonRoutes');
+const factionRoutes = require('./routes/factionRoutes');
+const pvpRoutes = require('./routes/pvpRoutes');
 
 require('./config/passport');
 
@@ -44,6 +47,8 @@ app.use('/api/units', unitRoutes);
 app.use('/api/kingdoms', require('./routes/kingdomRoutes'));
 app.use('/api/upgrades', require('./routes/upgradeRoutes'));
 app.use('/api/dungeons', dungeonRoutes);
+app.use('/api/factions', factionRoutes);
+app.use('/api/pvp', pvpRoutes);
 
 // Google OAuth Routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -69,3 +74,28 @@ app.get('/api/logout', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+async function createDefaultFaction() {
+  try {
+      const existingFaction = await Faction.findOne({ name: 'Default Faction' });
+      if (!existingFaction) {
+          const defaultFaction = new Faction({
+              name: 'Default Faction',
+              description: 'This is the default faction.',
+              advantage: 'No specific advantages.',
+              disadvantage: 'No specific disadvantages.',
+              image: 'default-image-url' // Provide a default image URL or path
+          });
+          await defaultFaction.save();
+          console.log('Default Faction created.');
+      } else {
+          console.log('Default Faction already exists.');
+      }
+  } catch (error) {
+      console.error('Error creating default faction:', error);
+  }
+}
+
+// Call the function during server startup
+//createDefaultFaction();

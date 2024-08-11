@@ -64,6 +64,10 @@
   button[type="button"]:hover {
     background-color: #5a6268;
   }
+
+  button.active {
+    background-color: #138496;
+  }
   
   .message {
     margin-top: 20px;
@@ -116,5 +120,34 @@
     display: inline-block;
     max-width: 80%;
     word-wrap: break-word;
+  }
+  
+
+  .dungeon-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .dungeon-table th,
+  .dungeon-table td {
+    padding: 10px;
+    border: 1px solid #495057;
+    text-align: left;
+  }
+  
+  .dungeon-table th {
+    background-color: #343a40;
+    color: #f8f9fa;
+  }
+  
+  .dungeon-table td button {
+    margin-right: 5px;
+    background-color: #0056b3;
+  }
+
+  .dungeon-table td button:hover {
+    margin-right: 5px;
+    background-color: #007bff;
   }
   

@@ -6,6 +6,7 @@ const RegionManagement = () => {
   const [regions, setRegions] = useState([]);
   const [editingRegion, setEditingRegion] = useState(null);
   const [newRegionName, setNewRegionName] = useState('');
+  const [newRegionLevel, setNewRegionLevel] = useState('');
   const [newRegionImage, setNewRegionImage] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -16,7 +17,7 @@ const RegionManagement = () => {
 
   const fetchRegions = async () => {
     try {
-      const response = await axios.get('/api/dungeons/regions');
+      const response = await axios.get('/api/dungeons/all-regions');
       setRegions(response.data);
     } catch (error) {
       console.error('Error fetching regions:', error);
@@ -36,6 +37,7 @@ const RegionManagement = () => {
 
     const formData = new FormData();
     formData.append('name', newRegionName);
+    formData.append('level', newRegionLevel);
     if (newRegionImage) formData.append('image', newRegionImage);
 
     try {
@@ -66,6 +68,7 @@ const RegionManagement = () => {
   const handleEditRegion = (region) => {
     setEditingRegion(region);
     setNewRegionName(region.name || '');
+    setNewRegionLevel(region.level || '');
     setNewRegionImage(null);
   };
 
@@ -100,6 +103,15 @@ const RegionManagement = () => {
           />
         </div>
         <div className="form-group">
+          <label>Region Level:</label>
+          <input
+            type="number"
+            value={newRegionLevel}
+            onChange={(e) => setNewRegionLevel(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
           <label>Region Image:</label>
           <input
             type="file"
@@ -123,7 +135,7 @@ const RegionManagement = () => {
         {regions.map((region) => (
           <li key={region._id}>
             <div className="region-details">
-              <span>{region.name}</span>
+              <span>{region.name} (Level: {region.level})</span>
               <button onClick={() => handleEditRegion(region)}>Edit</button>
               <button onClick={() => handleDeleteRegion(region._id)}>Delete</button>
             </div>

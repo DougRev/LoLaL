@@ -25,7 +25,7 @@ const AppContent = () => {
     console.log('App isAuthenticated:', isAuthenticated);
     console.log('App user:', user);
     console.log('App loading:', loading);
-
+    
     if (!loading) {
       if (isAuthenticated) {
         if (user && !user.faction) {

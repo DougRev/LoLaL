@@ -20,7 +20,7 @@ const bucketName = process.env.GCS_BUCKET; // Use the bucket name from .env
  * @returns {Promise<string>} - The public URL of the uploaded file
  */
 async function uploadFile(filePath, destination, regionName) {
-    const destinationPath = `dungeons/${regionName}/${destination}`;
+    const destinationPath = `${regionName}/${destination}`;
     await storage.bucket(bucketName).upload(filePath, {
       destination: destinationPath,
       gzip: true,
@@ -31,7 +31,23 @@ async function uploadFile(filePath, destination, regionName) {
   
     // The public URL can be used to directly access the file via HTTP
     return `https://storage.googleapis.com/${bucketName}/${destinationPath}`;
-  }
-  module.exports = {
+}
+
+/**
+ * Deletes a file from Google Cloud Storage
+ * @param {string} filename - The name of the file to delete
+ */
+async function deleteFile(filename) {
+    try {
+        await storage.bucket(bucketName).file(filename).delete();
+        console.log(`Deleted file: ${filename}`);
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        throw new Error('Unable to delete file');
+    }
+}
+
+module.exports = {
     uploadFile,
-  };
+    deleteFile,
+};

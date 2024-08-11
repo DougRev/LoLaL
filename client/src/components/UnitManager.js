@@ -171,7 +171,7 @@ const UnitManager = () => {
               <span>Defense: {unit.defense}</span>
               <span>Health: {unit.health}</span>
               <span>Speed: {unit.speed}</span>
-              {unit.image && <img src={unit.image} alt={unit.name} />}
+              {unit.image && <img src={unit.image} alt={unit.name} className='unit-image' />}
             </div>
             <div className="unit-actions">
               <button onClick={() => startEditing(unit)}>Edit</button>

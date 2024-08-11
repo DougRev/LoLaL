@@ -1,16 +1,24 @@
+@import '../styles/colors.css';
+
 .navbar {
   width: 200px;
-  background-color: #2b2b3b;
-  height: 100vh;
+  background-color: var(--color-black); /* Dark background */
+  height: 100%;
   position: fixed;
   left: 0;
   top: 0;
   padding: 20px;
   z-index: 10;
+  overflow-y: auto;
+  padding-left: 0;
+}
+.navbar {
+  border: solid 1px rgba(58, 70, 105, 0.452);
+  padding-left: 0;
 }
 
 .navbar h2 {
-  color: #f1f1f1;
+  color: var(--color-cornsilk); /* Light text color */
   margin-bottom: 20px;
 }
 
@@ -31,23 +39,31 @@
   width: 100%;
 }
 
+.bottom-nav {
+  position: absolute;
+  bottom: 20px;
+  width: 90%;
+  list-style: none;
+  padding: 0;
+}
+
 .nav-links a, .nav-links button {
   display: block;
   padding-top: 15px;
   padding-bottom: 15px;
   text-decoration: none;
-  color: #fff;
+  color: var(--color-cornsilk); /* Light text color */
   text-align: center;
   width: 100%;
   border-radius: 10px;
-  background-color: #1e1e2f;
+  background-color: var(--color-feldgrau); /* Dark green background */
   box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   margin: 10px 0;
 }
 
 .nav-links a:hover, .nav-links button:hover {
-  background-color: #564877;
+  background-color: var(--color-rufous); /* Red hover color */
   box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.1), inset -1px -1px 3px rgba(0, 0, 0, 0.6), 0 0 5px rgba(255, 255, 255, 0.2);
 }
 
@@ -84,7 +100,7 @@ button {
 .hamburger-line {
   width: 100%;
   height: 4px;
-  background-color: #fff;
+  background-color: var(--color-cornsilk); /* Light color for hamburger lines */
   border-radius: 2px;
   transition: all 0.3s ease;
 }
@@ -102,7 +118,7 @@ button {
 
 .close-icon {
   font-size: 30px;
-  color: #fff;
+  color: var(--color-cornsilk); /* Light color for close icon */
 }
 
 @media (max-width: 768px) {
@@ -123,7 +139,7 @@ button {
     top: 60px;
     left: 0;
     height: calc(100% - 60px);
-    background-color: #2b2b3b;
+    background-color: var(--color-eerie-black); /* Dark background */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -156,5 +172,11 @@ button {
 
   .logo {
     display: none;
+  }
+
+  .bottom-links {
+    position: relative;
+    bottom: auto;
+    margin-top: auto;
   }
 }

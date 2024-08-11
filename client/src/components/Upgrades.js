@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import upgrades from '../config/upgradesConfig';  
-import './Upgrades.css'; 
+import upgrades from '../config/upgradesConfig';
+import './Upgrades.css';
 
 const Upgrades = ({ onUpgradePurchase }) => {
   const { user, isAuthenticated } = useContext(AuthContext);
@@ -90,7 +90,7 @@ const Upgrades = ({ onUpgradePurchase }) => {
           const currentUpgrade = getCurrentUpgrade(upgradeType);
           const currentLevel = kingdom[upgradeType]?.level || (upgradeType === 'goldProduction' ? kingdom.goldProductionRate / 10 : 0);
           return (
-            <div key={upgradeType} className="upgrade-card" style={{ '--bg-image': `url('/images/${upgradeType}.png')` }}>
+            <div key={upgradeType} className="upgrade-card" style={{ backgroundImage: `url('/images/${upgradeType}.png')` }}>
               <h3>{`${displayNames[upgradeType]} Upgrade`}</h3>
               <p>Level: {currentLevel}</p>
               {isMaxLevel(upgradeType, currentLevel) ? (

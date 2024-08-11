@@ -38,9 +38,7 @@ const updateActionPoints = async (kingdomId) => {
 
 const getKingdom = async (req, res) => {
   try {
-    console.log('Fetching kingdom with ID:', req.params.id);
     const kingdom = await updateGoldProduction(req.params.id);
-    console.log('Fetched kingdom:', kingdom);
 
     if (!kingdom) {
       return res.status(404).json({ message: 'Kingdom not found' });

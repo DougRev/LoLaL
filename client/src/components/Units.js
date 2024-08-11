@@ -98,7 +98,7 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
               key={`${unit._id}-${index}`}
               className="unit-card"
               style={{
-                backgroundImage: `url(/images/${unit.name.toLowerCase()}.png)`
+                backgroundImage: `url(${unit.image})` // Updated to use the image from the unit data model
               }}
               onMouseEnter={() => setHoveredUnitId(unit._id)}
               onMouseLeave={() => setHoveredUnitId(null)}

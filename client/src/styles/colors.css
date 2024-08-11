@@ -1,0 +1,20 @@
+:root {
+  --color-black: #010101;
+  --color-rich-black: #01161E;
+  --color-chamoisee: #8E7A4E;
+  --color-midnight-green: #124559;
+  --color-air-force-blue: #598392;
+  --color-ash-gray: #AEC3B0;
+  --color-beige: #EFF6E0;
+}
+
+body {
+  background-color: var(--color-black);
+  color: var(--color-beige);
+}
+
+button {
+  background-color: var(--color-chamoisee);
+  color: var(--color-black);
+}
+

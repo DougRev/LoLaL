@@ -2,8 +2,8 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
-const factions = require('../models/Faction');
 const Kingdom = require('../models/Kingdom');
+const Faction = require('../models/Faction');
 
 dotenv.config();
 
@@ -147,26 +147,13 @@ const setFaction = async (req, res) => {
       return res.status(400).json({ msg: 'User not found' });
     }
 
-    const faction = factions.find(f => f.name === factionName);
+    const faction = await Faction.findOne({ name: factionName });
     if (!faction) {
       return res.status(400).json({ msg: 'Invalid faction' });
     }
 
-    user.faction = factionName;
+    user.faction = faction._id; // Use faction ID instead of name
     await user.save();
-
-    // Create a new kingdom for the user if not already created
-    if (!user.kingdom) {
-      const kingdom = new Kingdom({
-        user: user._id,
-        name: `${user.name}'s Kingdom`,
-        gold: 100,  // Initial gold assigned to the kingdom
-      });
-
-      await kingdom.save();
-      user.kingdom = kingdom._id.toString();
-      await user.save();
-    }
 
     res.status(200).json({ msg: 'Faction selected successfully', user });
   } catch (err) {
@@ -175,8 +162,14 @@ const setFaction = async (req, res) => {
   }
 };
 
-const getFactions = (req, res) => {
-  res.json(factions);
+const getFactions = async (req, res) => {
+  try {
+    const factions = await Faction.find();
+    res.json(factions);
+  } catch (error) {
+    console.error('Error fetching factions:', error);
+    res.status(500).send('Server error');
+  }
 };
 
 const getUserArmy = async (req, res) => {

@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import './ProfileInfo.css';
 
 const ProfileInfo = () => {
-  const { user, setUser } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [username, setUsername] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [message, setMessage] = useState('');
@@ -20,9 +20,9 @@ const ProfileInfo = () => {
         name: username,
         email,
       });
-      setUser(response.data);
       setMessage('Profile updated successfully.');
     } catch (error) {
+      console.error('Error updating profile:', error);
       setMessage('Error updating profile.');
     }
   };

@@ -1,0 +1,26 @@
+.dungeon-info {
+    text-align: center;
+    padding: 15px;
+  }
+  
+  .dungeon-info h2 {
+    color: var(--color-gold);
+    margin-bottom: 10px;
+  }
+  
+  .dungeon-info h3 {
+    color: var(--color-rufous);
+    margin-bottom: 10px;
+  }
+  
+  .boss-image {
+    width: 100%;
+    max-height: 350px;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 2px solid #d4af37;
+  }
+  
+  

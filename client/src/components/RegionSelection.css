@@ -1,0 +1,108 @@
+.region-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Increased gap for better spacing */
+    justify-content: center; /* Center align regions */
+  }
+  
+  .region-item {
+    width: 450px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    background-size: cover; /* Ensure image covers the container */
+    background-position: center; /* Center the background image */
+    color: white; /* White text for better contrast */
+    font-weight: bold;
+  }
+  
+  .region-item span {
+    z-index: 1; /* Ensure text is above the background */
+    font-size: 1.5em;
+  }
+  
+  .region-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2); /* Dark overlay for readability */
+    z-index: 0; /* Behind the text */
+    transition: background 0.3s;
+  }
+  
+  .region-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .region-item:hover::before {
+    background: rgba(0, 0, 0, 0.7);
+  }
+  
+  .dungeon-item {
+    width: 750px;
+    height: 75px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 15px;
+    border-radius: 15px;
+    overflow: hidden;
+    background-size: cover; /* Ensure image covers the container */
+    background-position: center; /* Center the background image */
+    background-repeat: no-repeat; /* Prevent image repetition */
+    transition: transform 0.3s, box-shadow 0.3s;
+
+  }
+  
+  .dungeon-item span {
+    z-index: 1;
+    font-size: 1.2em;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .dungeon-item button {
+    z-index: 1;
+    padding: 5px 10px;
+    background: rgba(10, 50, 68, 0.8);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .dungeon-item button:hover {
+    background: rgb(76, 95, 110);
+  }
+  
+  /* Fallback image if specific dungeon image is not found */
+  .dungeon-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 0;
+    transition: background 0.3s;
+  }
+
+  .dungeon-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  

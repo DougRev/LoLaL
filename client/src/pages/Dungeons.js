@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import DungeonSelection from '../components/DungeonSelection';
+import RegionSelection from '../components/RegionSelection';
 import './Dungeons.css';
 
 const Dungeons = () => {
@@ -14,47 +15,65 @@ const Dungeons = () => {
   const [selectedRegion, setSelectedRegion] = useState(null);
 
   useEffect(() => {
-    const fetchRegionsAndDungeons = async () => {
+    const fetchRegions = async () => {
       try {
         const regionsResponse = await axios.get('/api/dungeons/regions', {
           headers: { Authorization: `Bearer ${user.token}` },
         });
         console.log('Regions fetched:', regionsResponse.data);
-
-        const dungeonsResponse = await axios.get('/api/dungeons', {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        console.log('Dungeons fetched:', dungeonsResponse.data);
-
         setRegions(regionsResponse.data);
-        setDungeons(dungeonsResponse.data);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching regions:', error);
         setError(error.message);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchRegionsAndDungeons();
+  
+    fetchRegions();
   }, [user.token]);
+  
+  useEffect(() => {
+    if (selectedRegion) {
+      const fetchDungeons = async () => {
+        try {
+          const dungeonsResponse = await axios.get(`/api/dungeons/region/${selectedRegion}`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          console.log('Dungeons fetched for selected region:', dungeonsResponse.data);
+          
+          // Get user's progress in this region
+          const highestCompleted = user.highestDungeonCompleted.find(
+            (entry) => entry.regionId === selectedRegion
+          );
+          
+          const highestCompletedLevel = highestCompleted
+            ? dungeonsResponse.data.find((dungeon) => dungeon._id === highestCompleted.dungeonId)?.level || 0
+            : 0;
+          
+          // Filter dungeons to show only those that the user can access
+          const filteredDungeons = dungeonsResponse.data.filter(
+            (dungeon) => dungeon.level <= highestCompletedLevel + 1
+          );
+          
+          setDungeons(filteredDungeons);
+        } catch (error) {
+          console.error('Error fetching dungeons:', error);
+          setError(error.message);
+        }
+      };
+  
+      fetchDungeons();
+    }
+  }, [selectedRegion, user.token, user.highestDungeonCompleted]);
+ 
 
   const handleSelectRegion = (regionId) => {
     console.log('Selected region ID:', regionId);
     setSelectedRegion(regionId);
-    setSelectedDungeon(null); // Reset selected dungeon when region changes
+    setSelectedDungeon(null);
   };
 
-  const filteredDungeons = selectedRegion
-    ? dungeons.filter((dungeon) => {
-        console.log(`Dungeon region: ${dungeon.region._id}, Selected region: ${selectedRegion}`);
-        return dungeon.region && dungeon.region._id === selectedRegion;
-      })
-    : [];
-
-  useEffect(() => {
-    console.log('Filtered dungeons:', filteredDungeons);
-  }, [filteredDungeons]);
 
   const handleEnterDungeon = (dungeonId) => {
     const dungeon = dungeons.find((d) => d._id === dungeonId);
@@ -62,7 +81,11 @@ const Dungeons = () => {
     setSelectedDungeon(dungeon);
   };
 
-  const handleBack = () => {
+  const handleBackToRegions = () => {
+    setSelectedRegion(null);
+  };
+
+  const handleBackToDungeons = () => {
     setSelectedDungeon(null);
   };
 
@@ -73,50 +96,37 @@ const Dungeons = () => {
   if (error) {
     return <div className="error">Error: {error}</div>;
   }
-
+  
   return (
     <div className="dungeons-page">
       {!selectedDungeon ? (
-        <div>
-          {!selectedRegion ? (
-            <div className="region-list">
-              {regions.length > 0 ? (
-                regions.map((region) => (
-                  <div
-                    key={region._id}
-                    className="region-item"
-                    style={{ backgroundImage: `url(${region.image})` }}
-                    onClick={() => handleSelectRegion(region._id)}
-                  >
-                    <span>{region.name}</span>
-                  </div>
-                ))
-              ) : (
-                <p>No regions available.</p>
-              )}
-            </div>
-          ) : (
-            <div className="dungeon-list">
-              {filteredDungeons.length > 0 ? (
-                filteredDungeons.map((dungeon) => (
-                  <div
-                    key={dungeon._id}
-                    className="dungeon-item"
-                    style={{ backgroundImage: `url(${dungeon.image})` }}
-                  >
-                    <span>{dungeon.name}</span>
-                    <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
-                  </div>
-                ))
-              ) : (
-                <p>No dungeons available in this region. Select another region.</p>
-              )}
-              <button onClick={() => setSelectedRegion(null)}>Back to Regions</button>
-            </div>
-          )}
-        </div>
+        !selectedRegion ? (
+          <RegionSelection
+            regions={regions}
+            onSelectRegion={handleSelectRegion}
+            highestRegionCompleted={user.highestRegionCompleted}
+          />
+        ) : (
+          <div className="dungeon-list">
+            {dungeons.length > 0 ? (
+              dungeons.map((dungeon) => (
+                <div
+                  key={dungeon._id}
+                  className="dungeon-item"
+                  style={{ backgroundImage: `url(${dungeon.image})` }}
+                >
+                  <span>{dungeon.name}</span>
+                  <button onClick={() => handleEnterDungeon(dungeon._id)}>Enter</button>
+                </div>
+              ))
+            ) : (
+              <p>No dungeons available in this region. Select another region.</p>
+            )}
+            <button onClick={handleBackToRegions}>Back to Regions</button>
+          </div>
+        )
       ) : (
-        <DungeonSelection selectedDungeon={selectedDungeon} onBack={handleBack} />
+        <DungeonSelection selectedDungeon={selectedDungeon} onBack={handleBackToDungeons} />
       )}
     </div>
   );

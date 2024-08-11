@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import './UsersList.css'; // Ensure you have a CSS file for styling if needed
 
 const UsersList = () => {
   const { user } = useContext(AuthContext);
@@ -38,13 +39,13 @@ const UsersList = () => {
   }
 
   return (
-    <div>
-      <h2>Users List</h2>
-      <ul>
+    <div className="users-list-container">
+      <h2 className="users-list-title">Battlegrounds</h2>
+      <ul className="users-list">
         {users.map((otherUser) => (
-          <li key={otherUser._id}>
-            {otherUser.name} - Faction: {otherUser.faction}
-            {otherUser.faction !== user.faction && (
+          <li key={otherUser._id} className="user-item">
+            {otherUser.name} - Faction: {otherUser.faction ? otherUser.faction.name : 'No Faction'}
+            {otherUser.faction && otherUser.faction.name !== user.faction?.name && (
               <button onClick={() => handleAttack(otherUser._id)}>Attack</button>
             )}
           </li>

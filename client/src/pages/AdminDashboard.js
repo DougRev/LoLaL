@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import UserManagement from '../components/UserManagement';
 import UnitManager from '../components/UnitManager';
 import DungeonCreation from '../components/DungeonCreation';
-import RegionManagement from '../components/RegionManagement'; // Import RegionManagement component
+import RegionManagement from '../components/RegionManagement';
+import FactionManagement from '../components/FactionManagement';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -36,12 +37,19 @@ const AdminDashboard = () => {
         >
           Region Management
         </button>
+        <button
+          className={activeTab === 'FactionManagement' ? 'active' : ''}
+          onClick={() => setActiveTab('FactionManagement')}
+        >
+          Faction Management
+        </button>
       </div>
       <div className="tab-content">
         {activeTab === 'UserManagement' && <UserManagement />}
         {activeTab === 'UnitManager' && <UnitManager />}
         {activeTab === 'DungeonCreation' && <DungeonCreation />}
         {activeTab === 'RegionManagement' && <RegionManagement />}
+        {activeTab === 'FactionManagement' && <FactionManagement />}
       </div>
     </div>
   );

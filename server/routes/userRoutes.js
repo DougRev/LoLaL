@@ -36,6 +36,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Update user's profile information
+router.put('/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const { name, email } = req.body;
+
+  try {
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update fields if they are provided
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.error('Error updating user profile:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Update user's password
 router.put('/:id/password', auth, async (req, res) => {
   const { id } = req.params;
