@@ -1,34 +1,113 @@
 .my-army {
-    margin: 20px;
-    font-family: Arial, sans-serif;
-  }
-  
-  .unit-container {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .unit-item {
-    margin-bottom: 10px;
-  }
-  
-  .assign-input {
-    margin: 5px;
-    padding: 5px;
-    width: 50px;
-  }
-  
-  .assign-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 10px;
-    margin: 5px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .assign-button:hover {
-    background: #0056b3;
-  }
-  
+  margin: 20px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.army-tabs {
+  margin-bottom: 20px;
+}
+
+.army-tabs button {
+  background-color: var(--color-midnight-green);
+  color: var(--color-cornsilk);
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.army-tabs button.active {
+  background-color: var(--color-chamoisee);
+}
+
+.army-tabs button:hover {
+  background-color: var(--color-air-force-blue);
+}
+
+.army-table {
+  border-collapse: collapse;
+  margin: 0 auto 20px auto;
+  width: 75%;
+}
+
+.army-table th,
+.army-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-black);
+  color: var(--color-cornsilk);
+}
+
+.army-table th {
+  background-color: var(--color-midnight-green);
+}
+
+.army-table td {
+  background-color: var(--color-rich-black);
+}
+
+.army-table .assign-input {
+  width: 60px;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid var(--color-cornsilk);
+  text-align: center;
+  background-color: var(--color-ash-gray);
+  color: var(--color-black);
+}
+
+.army-row {
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-rich-black);
+}
+
+.army-table .assign-button {
+  background: var(--color-chamoisee);
+  color: var(--color-black);
+  border: none;
+  padding: 5px 10px;
+  margin-left: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.army-table .assign-button:hover {
+  background-color: var(--color-midnight-green);
+}
+
+.loading,
+.error,
+.no-units {
+  text-align: center;
+  font-size: 18px;
+  color: var(--color-cornsilk);
+}
+
+h2, h3 {
+  color: var(--color-cornsilk);
+}
+
+h3 {
+  margin-top: 20px;
+}
+
+.army-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.army-details {
+  margin-right: 50px;
+}
+
+.input-error {
+  color: red;
+  margin: 10px 0;
+  text-align: center;
+}

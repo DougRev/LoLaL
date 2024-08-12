@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-//import './UserManagement.css';
+import './UserManagement.css';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -59,7 +59,7 @@ const UserManagement = () => {
   return (
     <div className="user-management">
       <h2>User Management</h2>
-      <table>
+      <table className="user-management-table">
         <thead>
           <tr>
             <th>Name</th>
@@ -79,6 +79,7 @@ const UserManagement = () => {
                     type="text"
                     value={editUserRole}
                     onChange={(e) => setEditUserRole(e.target.value)}
+                    className="user-input"
                   />
                 ) : (
                   user.role
