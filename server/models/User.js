@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, unique: true, required: true }, // Use as username
+  name: { type: String, unique: true, required: true }, 
   email: { type: String, required: true, unique: true },
   password: { type: String },
   googleId: { type: String, unique: true, sparse: true },
@@ -34,6 +34,13 @@ const UserSchema = new mongoose.Schema({
       speed: { type: Number, default: 0 },
       health: { type: Number, default: 100 }
     }
+  },
+  runeCollection: {
+    common: { type: Number, default: 0 },
+    uncommon: { type: Number, default: 0 },
+    rare: { type: Number, default: 0 },
+    epic: { type: Number, default: 0 },
+    legendary: { type: Number, default: 0 }
   }
 }, { timestamps: true });
 

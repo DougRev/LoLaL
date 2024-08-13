@@ -5,6 +5,7 @@ import MyArmy from '../components/MyArmy';
 import axios from 'axios';
 import Upgrades from '../components/Upgrades';
 import Vault from '../components/Vault';
+import PlayerStats from '../components/PlayerStats';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -129,6 +130,8 @@ const Dashboard = () => {
             <p><strong>Next Action Point Update:</strong> {Math.floor(nextActionPointUpdate / 1000)} seconds</p>
           </div>
         </div>
+        
+        <PlayerStats user={user} />
 
         <div className="tabs">
           <button className={activeTab === 'recruiting' ? 'active' : ''} onClick={() => setActiveTab('recruiting')}>Recruiting</button>

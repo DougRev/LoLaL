@@ -1,0 +1,19 @@
+.player-stats {
+    margin-top: 20px;
+    background-color: var(--color-rich-black);
+    padding: 15px;
+    border-radius: 5px;
+    color: var(--color-cornsilk);
+  }
+  
+  .player-stats h2 {
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    color: var(--color-cornsilk);
+  }
+  
+  .player-stats .stats p {
+    margin: 5px 0;
+    font-size: 1.1em;
+  }
+  

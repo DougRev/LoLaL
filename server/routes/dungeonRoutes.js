@@ -605,45 +605,86 @@ const generateRune = (tier) => {
     common: { min: 1, max: 3 },
     uncommon: { min: 3, max: 6 },
     rare: { min: 6, max: 10 },
-    epic: { min: 10, max: 15 },
-    legendary: { min: 15, max: 20 }
+    epic: { min: 10, max: 14 },
+    legendary: { min: 12, max: 16 }
   };
 
-  // Get the buff range for the given tier
+  // Define the possible number of stats that can be buffed based on the rune's tier
+  const buffCountRanges = {
+    common: { min: 1, max: 2 },
+    uncommon: { min: 1, max: 3 },
+    rare: { min: 2, max: 3 },
+    epic: { min: 3, max: 4 },
+    legendary: { min: 3, max: 5 }
+  };
+
+  // Get the buff range and count range for the given tier
   const { min, max } = buffRanges[tier] || { min: 0, max: 0 };
+  const { min: buffMin, max: buffMax } = buffCountRanges[tier] || { min: 0, max: 0 };
 
-  // Generate random buffs within the range
-  const randomBuff = () => Math.floor(Math.random() * (max - min + 1)) + min;
+  // Function to generate a controlled random buff with a bias towards balanced values
+  const controlledRandomBuff = () => {
+    const midpoint = (min + max) / 2;
+    const variance = (max - min) / 4;
+    return Math.floor(midpoint + (Math.random() * variance * 2 - variance));
+  };
 
-  // Create the rune object with random buffs
+  // Randomly determine how many stats will be buffed
+  const numberOfBuffs = Math.floor(Math.random() * (buffMax - buffMin + 1)) + buffMin;
+
+  // Create the rune object, only applying buffs to a random subset of stats
+  const stats = ['attack', 'defense', 'speed', 'health'];
+  const selectedStats = [];
+
+  // Randomly select stats to buff
+  while (selectedStats.length < numberOfBuffs) {
+    const randomStat = stats[Math.floor(Math.random() * stats.length)];
+    if (!selectedStats.includes(randomStat)) {
+      selectedStats.push(randomStat);
+    }
+  }
+
+  // Initialize buffs with 0, then assign buffs to selected stats
+  const buffs = { attack: 0, defense: 0, speed: 0, health: 0 };
+  selectedStats.forEach(stat => {
+    buffs[stat] = controlledRandomBuff();
+  });
+
   const rune = {
     tier: tier,
-    buffs: {
-      attack: randomBuff(),
-      defense: randomBuff(),
-      speed: randomBuff(),
-      health: randomBuff()
-    }
+    buffs: buffs
   };
 
   return rune;
 };
 
 const determineRuneDrop = (reward) => {
+  const overallDropRate = 0.15; // 15% chance that any rune will drop
   const rand = Math.random();
+
+  if (rand > overallDropRate) {
+    return null; // No rune dropped
+  }
+
+  // If a rune is to be dropped, determine its tier
   let cumulative = 0;
   for (const [tier, rate] of Object.entries(reward.runes)) {
     cumulative += rate;
     if (rand <= cumulative) {
-      return generateRune(tier); // Call the generateRune function
+      return generateRune(tier); // Generate the rune if within rate
     }
   }
-  return null; // No rune dropped
+  return null; // Fallback: no rune dropped
 };
+
 
 const applyRune = (user, rune) => {
   if (!rune) return;
 
+  // Update the user's rune collection
+  user.runeCollection[rune.tier] += 1;
+
+  // Apply the rune buffs to the user's stats
   user.stats.runes.attack += rune.buffs.attack;
   user.stats.runes.defense += rune.buffs.defense;
   user.stats.runes.speed += rune.buffs.speed;
@@ -655,6 +696,7 @@ const applyRune = (user, rune) => {
   user.stats.total.speed = user.stats.base.speed + user.stats.runes.speed;
   user.stats.total.health = user.stats.base.health + user.stats.runes.health;
 };
+
 
 router.post('/battle', async (req, res) => {
   const { userId, dungeonId, units } = req.body;
@@ -675,6 +717,14 @@ router.post('/battle', async (req, res) => {
       return res.status(404).json({ message: 'User or dungeon not found' });
     }
 
+    // Check if user has enough action points
+    if (user.actionPoints < dungeon.actionPointCost) {
+      return res.status(400).json({ message: `Not enough action points. Required: ${dungeon.actionPointCost}` });
+    }
+  
+    // Deduct the action points
+    user.actionPoints -= dungeon.actionPointCost;
+
     // Fetch unit details
     const unitDetails = await Unit.find({ _id: { $in: Object.keys(units) } });
 
@@ -694,91 +744,93 @@ router.post('/battle', async (req, res) => {
 
     // Process casualties
     const unitsLost = await processCasualties(user._id, killedUnits);
-    console.log('Units lost after processing:', unitsLost);
 
 // Determine and apply rewards/losses based on result
 if (result === 'win') {
   user.kingdom.gold += dungeon.reward.gold;
 
-// Log the current dungeon and user progress
-console.log(`Dungeon ${dungeon._id} in region ${dungeon.region._id} completed by user ${user._id}`);
+  // Log the current dungeon and user progress
+  console.log(`Dungeon ${dungeon._id} in region ${dungeon.region._id} completed by user ${user._id}`);
 
-// Fetch all dungeons in the region
-const regionDungeons = await Dungeon.find({ region: dungeon.region._id });
-console.log(`Region ${dungeon.region._id} has ${regionDungeons.length} dungeons.`);
-console.log('Region dungeons:', regionDungeons.map(d => ({ id: d._id.toString(), level: d.level })));
+  // Fetch all dungeons in the region
+  const regionDungeons = await Dungeon.find({ region: dungeon.region._id });
+  console.log(`Region ${dungeon.region._id} has ${regionDungeons.length} dungeons.`);
+  console.log('Region dungeons:', regionDungeons.map(d => ({ id: d._id.toString(), level: d.level })));
 
-// Determine the highest level dungeon in the region
-const highestLevelDungeonInRegion = regionDungeons.reduce((max, d) => d.level > max.level ? d : max, regionDungeons[0]);
-console.log('Highest level dungeon in the region:', highestLevelDungeonInRegion);
+  // Determine the highest level dungeon in the region
+  const highestLevelDungeonInRegion = regionDungeons.reduce((max, d) => d.level > max.level ? d : max, regionDungeons[0]);
+  console.log('Highest level dungeon in the region:', highestLevelDungeonInRegion);
 
-// Fetch the user's highest dungeon completed in the region
-let highestCompleted = user.highestDungeonCompleted.find(entry => entry.regionId === dungeon.region._id.toString());
-let highestDungeonLevel = 0;
+  // Fetch the user's highest dungeon completed in the region
+  let highestCompleted = user.highestDungeonCompleted.find(entry => entry.regionId === dungeon.region._id.toString());
+  console.log('HIGHEST COMPLETED:',highestCompleted);
+  let highestDungeonLevel = 0;
 
-if (highestCompleted) {
-    const highestDungeon = await Dungeon.findById(highestCompleted.dungeonId);
-    highestDungeonLevel = highestDungeon ? highestDungeon.level : 0;
-    console.log('Highest dungeon level completed by user in this region:', highestDungeonLevel);
-}
-
-// Update highestDungeonCompleted if the current dungeon level is higher
-if (!highestCompleted || dungeon.level > highestDungeonLevel) {
-    if (highestCompleted) {
-        highestCompleted.dungeonId = dungeon._id.toString();  // Update the existing entry
-        console.log(`Updated highest dungeon completed in region ${dungeon.region._id} to dungeon ${dungeon._id}`);
-    } else {
-        user.highestDungeonCompleted.push({ regionId: dungeon.region._id.toString(), dungeonId: dungeon._id.toString() });  // Add a new entry
-        console.log(`Added new entry for region ${dungeon.region._id}, setting highest dungeon completed to dungeon ${dungeon._id}`);
-    }
-}
+  // Update highestDungeonCompleted if the current dungeon level is higher
+  if (!highestCompleted || dungeon.level > highestDungeonLevel) {
+      if (highestCompleted) {
+          highestCompleted.dungeonId = dungeon._id.toString();  // Update the existing entry
+          console.log(`Updated highest dungeon completed in region ${dungeon.region._id} to dungeon ${dungeon._id}`);
+      } else {
+          user.highestDungeonCompleted.push({ regionId: dungeon.region._id.toString(), dungeonId: dungeon._id.toString() });  // Add a new entry
+          console.log(`Added new entry for region ${dungeon.region._id}, setting highest dungeon completed to dungeon ${dungeon._id}`);
+      }
+      highestDungeonLevel = dungeon.level; // Set the highest level to the current dungeon level
+  } else {
+      const highestDungeon = await Dungeon.findById(highestCompleted.dungeonId);
+      highestDungeonLevel = highestDungeon ? highestDungeon.level : 0;
+      console.log('Highest dungeon level completed by user in this region:', highestDungeonLevel);
+  }
 
 // Check if all dungeons in the region have been completed
-const allDungeonsCompleted = highestDungeonLevel === highestLevelDungeonInRegion.level &&
-  highestCompleted.dungeonId === highestLevelDungeonInRegion._id.toString();
+const allDungeonsCompleted = 
+    highestDungeonLevel === highestLevelDungeonInRegion.level &&
+    highestCompleted && // Ensuring highestCompleted is defined before accessing its properties
+    highestCompleted.dungeonId === highestLevelDungeonInRegion._id.toString();
 
 if (allDungeonsCompleted) {
-  // Unlock the next region by updating the highestRegionCompleted
-  if (!user.highestRegionCompleted || user.highestRegionCompleted !== dungeon.region._id.toString()) {
-    user.highestRegionCompleted = dungeon.region._id.toString();
-  }
-  
-  // Check if there's a next region to unlock
-  const nextRegion = await Region.findOne({ level: highestLevelDungeonInRegion.level + 1 });
-  if (nextRegion) {
-    // Unlock the next region for the user
-    console.log(`Unlocking next region: ${nextRegion.name}`);
-  }
+    // Unlock the next region by updating the highestRegionCompleted
+    if (!user.highestRegionCompleted || user.highestRegionCompleted !== dungeon.region._id.toString()) {
+        user.highestRegionCompleted = dungeon.region._id.toString();
+    }
+
+    // Check if there's a next region to unlock
+    const nextRegion = await Region.findOne({ level: highestLevelDungeonInRegion.level + 1 });
+    if (nextRegion) {
+        // Unlock the next region for the user
+        console.log(`Unlocking next region: ${nextRegion.name}`);
+    }
 }
 
 
 const rune = determineRuneDrop(dungeon.reward);
-applyRune(user, rune);
+      if (rune) {
+        applyRune(user, rune);
+      }
 
-await user.kingdom.save();
-await user.save();
+      await user.kingdom.save();
+      await user.save();
 
-res.status(200).json({
-    message: 'You won the battle!',
-    goldEarned: dungeon.reward.gold,
-    unitsLost,
-    battleLog,
-    rune: rune ? rune : null,
-    bossHealth: bossHealth,
-    playerHealth: playerHealth,
-});
-
-} else {
-  res.status(200).json({
-      message: 'You lost the battle.',
-      goldEarned: 0,
-      unitsLost,
-      battleLog,
-      bossHealth: bossHealth,
-      playerHealth: playerHealth,
-  });
-}
-
+      res.status(200).json({
+        message: 'You won the battle!',
+        goldEarned: dungeon.reward.gold,
+        unitsLost,
+        battleLog,
+        rune: rune ? rune : null,
+        bossHealth: bossHealth,
+        playerHealth: playerHealth,
+      });
+    } else {
+      await user.save();
+      res.status(200).json({
+        message: 'You lost the battle.',
+        goldEarned: 0,
+        unitsLost,
+        battleLog,
+        bossHealth: bossHealth,
+        playerHealth: playerHealth,
+      });
+    }
   } catch (err) {
     console.error('Error in battle:', err);
     res.status(500).json({ message: err.message });

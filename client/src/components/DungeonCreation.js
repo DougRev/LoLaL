@@ -12,6 +12,7 @@ const DungeonCreation = () => {
   const [bossSpeed, setBossSpeed] = useState(0);
   const [rewardGold, setRewardGold] = useState(0);
   const [rewardOther, setRewardOther] = useState('');
+  const [actionPointCost, setActionPointCost] = useState(1);
   const [dungeons, setDungeons] = useState([]);
   const [editingDungeon, setEditingDungeon] = useState(false); 
   const [error, setError] = useState(null);
@@ -38,7 +39,7 @@ const DungeonCreation = () => {
 
   const fetchRegions = async () => {
     try {
-      const response = await axios.get('/api/dungeons/regions');
+      const response = await axios.get('/api/dungeons/all-regions');
       setRegions(response.data);
     } catch (error) {
       console.error('Error fetching regions:', error);
@@ -75,6 +76,7 @@ const DungeonCreation = () => {
     formData.append('boss[speed]', bossSpeed);
     formData.append('reward[gold]', rewardGold);
     formData.append('reward[other]', rewardOther);
+    formData.append('actionPointCost', actionPointCost);
     formData.append('regionId', selectedRegion);
     if (image) formData.append('dungeonImage', image);
     if (bossImage) formData.append('bossImage', bossImage);
@@ -114,6 +116,7 @@ const DungeonCreation = () => {
     setBossSpeed(dungeon.boss.speed || 0);
     setRewardGold(dungeon.reward.gold || 0);
     setRewardOther(dungeon.reward.other || '');
+    setActionPointCost(dungeon.actionPointCost || 1);
     setSelectedRegion(dungeon.region ? dungeon.region._id : '');
     setImage(null);
     setBossImage(null);
@@ -141,6 +144,7 @@ const DungeonCreation = () => {
     setBossSpeed(0);
     setRewardGold(0);
     setRewardOther('');
+    setActionPointCost(1);
     setSelectedRegion('');
     setImage(null);
     setBossImage(null);
@@ -225,7 +229,17 @@ const DungeonCreation = () => {
                 value={level}
                 onChange={(e) => setLevel(parseInt(e.target.value))}
                 required
-                disabled // Disable manual input for level
+                disabled 
+              />
+            </div>
+            <div className="form-group">
+              <label>Action Point Cost:</label> 
+              <input
+                type="number"
+                value={actionPointCost}
+                onChange={(e) => setActionPointCost(parseInt(e.target.value))}
+                required
+                min="1"
               />
             </div>
             <div className="form-group">
