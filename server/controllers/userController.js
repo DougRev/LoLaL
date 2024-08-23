@@ -4,9 +4,11 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const Kingdom = require('../models/Kingdom');
 const Faction = require('../models/Faction');
+const { applyFactionModifiers } = require('../utils/factionModifiers');
 
 dotenv.config();
 
+// Generate JWT
 const generateToken = (user) => {
   const payload = {
     user: {
@@ -16,7 +18,7 @@ const generateToken = (user) => {
       role: user.role,
     },
   };
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' }); // Short-lived access token
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
 };
 
 const generateRefreshToken = (user) => {
@@ -36,19 +38,24 @@ const refreshToken = async (req, res) => {
   }
 
   try {
+    // Verify the refresh token
     const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
     const user = await User.findById(decoded.user.id);
     if (!user) {
       return res.status(401).json({ msg: 'User not found, authorization denied' });
     }
 
+    // Generate a new access token
     const newAccessToken = generateToken(user);
-    res.json({ token: newAccessToken });
+    const newRefreshToken = generateRefreshToken(user); // Optionally refresh the refresh token
+
+    res.json({ token: newAccessToken, refreshToken: newRefreshToken });
   } catch (err) {
     console.error('Refresh token is not valid', err);
-    res.status(401).json({ msg: 'Token expired or not valid' });
+    return res.status(401).json({ msg: 'Token expired or not valid' });
   }
 };
+
 
 
 const register = async (req, res) => {
@@ -112,6 +119,11 @@ const login = async (req, res) => {
 
     const token = generateToken(user); // Generate after validation
     const refreshToken = generateRefreshToken(user); // Generate after validation
+    
+        
+    // Fetch additional user details, ensuring that stats and runeCollection are included
+    user = await User.findById(user._id).populate('kingdom').populate('faction');
+
     res.json({ token, refreshToken });
   } catch (err) {
     console.error(err.message);
@@ -119,18 +131,18 @@ const login = async (req, res) => {
   }
 };
 
-
-
+// Controller for fetching the current authenticated user's profile
 const getUser = async (req, res) => {
   try {
-    console.log('Fetching user with ID:', req.user.id);
-    const user = await User.findById(req.user.id).select('-password').populate('kingdom');
-    
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('kingdom')
+      .populate('faction');
+
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    console.log('Fetched user:', user);
     res.json(user);
   } catch (err) {
     console.error('Error fetching user:', err);
@@ -138,29 +150,100 @@ const getUser = async (req, res) => {
   }
 };
 
+// Controller for updating the current authenticated user's profile
+const updateProfile = async (req, res) => {
+  const { name, email } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update fields if they are provided
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.error('Error updating user profile:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Admin Controller Logic Integrated Here
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const updateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    const user = await User.findByIdAndUpdate(id, { role }, { new: true });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await User.findByIdAndDelete(id);
+    res.json({ message: 'User deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 const setFaction = async (req, res) => {
   const { factionName } = req.body;
 
   try {
-    const user = await User.findById(req.user.id);
+    // Find the user and populate the associated kingdom
+    const user = await User.findById(req.user.id).populate('kingdom');
     if (!user) {
       return res.status(400).json({ msg: 'User not found' });
     }
 
+    // Find the requested faction by its name
     const faction = await Faction.findOne({ name: factionName });
     if (!faction) {
       return res.status(400).json({ msg: 'Invalid faction' });
     }
 
-    user.faction = faction._id; // Use faction ID instead of name
+    // Update the user's faction
+    user.faction = faction._id;
+
+    // Update the kingdom's faction as well
+    const kingdom = await Kingdom.findById(user.kingdom._id);
+    if (!kingdom) {
+      return res.status(400).json({ msg: 'Kingdom not found' });
+    }
+    kingdom.faction = faction._id;
+
+    // Apply faction-specific stat modifications to the user and their kingdom
+    applyFactionModifiers(user, kingdom, faction);
+
+    // Save both the user and kingdom after applying modifiers
     await user.save();
+    await kingdom.save();
 
     res.status(200).json({ msg: 'Faction selected successfully', user });
   } catch (err) {
-    console.error(err.message);
+    console.error('Error setting faction:', err.message);
     res.status(500).send('Server error');
   }
 };
+
 
 const getFactions = async (req, res) => {
   try {
@@ -187,4 +270,4 @@ const getUserArmy = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUser, setFaction, getFactions, getUserArmy, refreshToken };
+module.exports = { register, login, getUser, updateProfile, setFaction, getFactions, getUserArmy, refreshToken, getAllUsers, updateUserRole, deleteUser };

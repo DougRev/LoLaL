@@ -1,0 +1,37 @@
+.kingdom-overview {
+    background-color: var(--color-black);
+    padding: 20px;
+    border-radius: 10px;
+    color: var(--color-beige);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
+    width: 85%;
+    margin-right: 10px;
+  }
+  
+  .kingdom-overview h2 {
+    font-size: 1.8em;
+    color: var(--color-beige);
+    text-align: center;
+    border-bottom: 2px solid var(--color-chamoisee);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .kingdom-info-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .kingdom-info,
+  .kingdom-production {
+    flex: 1;
+  }
+  
+  .kingdom-info p,
+  .kingdom-production p {
+    margin: 10px 0;
+    font-size: 1.2em;
+  }
+  

@@ -6,6 +6,8 @@ import axios from 'axios';
 import Upgrades from '../components/Upgrades';
 import Vault from '../components/Vault';
 import PlayerStats from '../components/PlayerStats';
+import KingdomOverview from '../components/KingdomOverview';
+
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -26,9 +28,16 @@ const Dashboard = () => {
     setTriggerFetch(!triggerFetch);
   };
 
+  const { fetchKingdom } = useContext(AuthContext);
+
   const handleKingdomUpdate = () => {
     setTriggerFetch(!triggerFetch);
+    // Also update the global kingdom state in AuthContext
+    if (user?.kingdom?._id) {
+      fetchKingdom(user.kingdom._id);
+    }
   };
+  
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -73,6 +82,7 @@ const Dashboard = () => {
 
     if (!userLoading) {
       fetchKingdom();
+      console.log('User data in Dashboard:', user); 
     }
   }, [user, triggerFetch, userLoading]);
 
@@ -107,32 +117,16 @@ const Dashboard = () => {
     return <div>No kingdom data available. Please contact support.</div>;
   }
 
+  console.log('Kingdom data passed to KingdomOverview:', kingdom);
+
   return (
     <div className="dashboard">
       <div className="main-content">
-        <div className="top-section">
-          <div className="key-info">
-            <div>
-              <h1>Kingdom Overview</h1>
-              <div className="stats">
-                <p><strong>Faction:</strong> {user && user.faction}</p>
-                <p><strong>Gold:</strong> {kingdom.gold}</p>
-                <p><strong>Vault:</strong> {kingdom.vault.capacity}</p>
-                <p><strong>Offense:</strong> {kingdom.offensiveStats}</p>
-                <p><strong>Defense:</strong> {kingdom.defensiveStats}</p>
-                <p><strong>Action Points:</strong> {kingdom.actionPoints}</p>
-              </div>
-            </div>
-          </div>
-          <div className="production">
-            <p><strong>Gold Production Rate:</strong> {kingdom.goldProductionRate} per minute</p>
-            <p><strong>Next Gold Update:</strong> {Math.floor(nextGoldUpdate / 1000)} seconds</p>
-            <p><strong>Next Action Point Update:</strong> {Math.floor(nextActionPointUpdate / 1000)} seconds</p>
-          </div>
+      <div className="overview-container">
+      {console.log('Rendering KingdomOverview with:', kingdom)} {/* <-- Add this line */}
+          <KingdomOverview  user={user} kingdom={kingdom} nextGoldUpdate={nextGoldUpdate} nextActionPointUpdate={nextActionPointUpdate} />
+          <PlayerStats user={user} />
         </div>
-        
-        <PlayerStats user={user} />
-
         <div className="tabs">
           <button className={activeTab === 'recruiting' ? 'active' : ''} onClick={() => setActiveTab('recruiting')}>Recruiting</button>
           <button className={activeTab === 'barracks' ? 'active' : ''} onClick={() => setActiveTab('barracks')}>Barracks</button>

@@ -114,3 +114,7 @@ button:hover {
 .battle-result-popup button {
   margin-top: 15px;
 }
+
+.dungeon-pre-battle-info h4{
+  color: var(--color-chamoisee);
+}

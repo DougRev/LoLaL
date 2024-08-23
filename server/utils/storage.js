@@ -19,19 +19,33 @@ const bucketName = process.env.GCS_BUCKET; // Use the bucket name from .env
  * @param {string} destination - The destination path in the bucket
  * @returns {Promise<string>} - The public URL of the uploaded file
  */
-async function uploadFile(filePath, destination, regionName) {
+async function uploadFile(filePathOrBuffer, destination, regionName) {
     const destinationPath = `${regionName}/${destination}`;
-    await storage.bucket(bucketName).upload(filePath, {
-      destination: destinationPath,
-      gzip: true,
-      metadata: {
-        cacheControl: 'public, max-age=31536000',
-      },
-    });
-  
+    
+    if (Buffer.isBuffer(filePathOrBuffer)) {
+        // Handle buffer upload (for memory storage)
+        const file = storage.bucket(bucketName).file(destinationPath);
+        await file.save(filePathOrBuffer, {
+            gzip: true,
+            metadata: {
+                cacheControl: 'public, max-age=31536000',
+            },
+        });
+    } else {
+        // Handle file path upload (for disk storage)
+        await storage.bucket(bucketName).upload(filePathOrBuffer, {
+            destination: destinationPath,
+            gzip: true,
+            metadata: {
+                cacheControl: 'public, max-age=31536000',
+            },
+        });
+    }
+
     // The public URL can be used to directly access the file via HTTP
     return `https://storage.googleapis.com/${bucketName}/${destinationPath}`;
 }
+
 
 /**
  * Deletes a file from Google Cloud Storage

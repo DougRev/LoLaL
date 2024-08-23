@@ -1,14 +1,14 @@
-const { default: UsersList } = require("../components/UsersList");
+import React from 'react';
+import KingdomList from '../components/KingdomList';
+import './Battlegrounds.css';
 
 const Battlegrounds = () => {
+  return (
+    <div className="battlegrounds">
+      <h1>Kingdoms Battleground</h1>
+      <KingdomList />
+    </div>
+  );
+};
 
-
-    return (
-        <div>
-          <h1>Battlegrounds</h1>
-          <UsersList />
-        </div>
-      );
-    };
-
-    export default Battlegrounds;
+export default Battlegrounds;

@@ -20,9 +20,10 @@ const VaultSchema = new mongoose.Schema({
 
 const KingdomSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  faction: { type: mongoose.Schema.Types.ObjectId, ref: 'Faction' },
   name: { type: String, required: true },
   level: { type: Number, default: 1 },
-  gold: { type: Number, default: 0 },
+  gold: { type: Number, default: 10000 },
   goldProductionRate: { type: Number, default: 10 }, 
   lastGoldCollection: { type: Date, default: Date.now }, 
   actionPoints: { type: Number, default: 50 },
@@ -35,7 +36,14 @@ const KingdomSchema = new mongoose.Schema({
   barracks: { type: UpgradeSchema, default: { level: 0, name: 'Barracks', cost: 100, bonus: 10 } },
   wallFortifications: { type: UpgradeSchema, default: { level: 0, name: 'Wall Fortification', cost: 100, bonus: 10 } },
   vault: { type: VaultSchema, default: { level: 1, capacity: 1000 } },
-  vaultGold: { type: Number, default: 0 }
+  vaultGold: { type: Number, default: 0 },
+  goldProduction: { type: UpgradeSchema, default: { level: 1, name: 'Gold Production', cost: 150, bonus: 500 } } // New schema for gold production upgrade
 }, { timestamps: true });
+
+KingdomSchema.pre('save', async function(next) {
+  const kingdom = this;
+
+  next();
+});
 
 module.exports = mongoose.model('Kingdom', KingdomSchema);

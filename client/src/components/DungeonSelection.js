@@ -61,17 +61,35 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
   };
 
   const handleBattle = async () => {
-    if ((selectedDungeon?.level || 0) > (user?.highestDungeonCompleted || 0) + 1) {
+    // Find the progress for the current region
+    let userRegionProgress = user.regionProgress.find(entry => entry.regionId === selectedDungeon.region.toString());
+  
+    // If userRegionProgress is undefined, initialize it (this could happen if the region is newly unlocked)
+    if (!userRegionProgress) {
+      userRegionProgress = {
+        regionId: selectedDungeon.region.toString(),
+        completedDungeons: [],
+        isRegionCompleted: false,
+      };
+      // Optionally, push this new region progress to the user's regionProgress array in the backend.
+    }
+  
+    // Check if the user is eligible to attempt the dungeon
+    const isEligible = userRegionProgress.completedDungeons.some(d => d.dungeonId === selectedDungeon._id.toString());
+  
+    // If not eligible, ensure that the dungeon is the next one in sequence
+    if (!isEligible && selectedDungeon.level !== userRegionProgress.completedDungeons.length + 1) {
       setError('You must complete the previous dungeons before attempting this one.');
       return;
     }
-
+  
+    // Proceed with the battle
     setError(null);
     setBattleResult(null);
     setBattleLogMessages([]);
     setCurrentLogIndex(0);
     setBossHealth(selectedDungeon?.boss?.health || 0);
-
+  
     setFading(true);
     setTimeout(async () => {
       setBattleStarted(true);
@@ -79,7 +97,7 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
       setPlayerHealth(initialPlayerHealth);
       setMaxPlayerHealth(initialPlayerHealth);
       setHealthBarsInitialized(true);
-
+  
       setLoading(true);
       try {
         const response = await axios.post('/api/dungeons/battle', {
@@ -87,7 +105,7 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
           dungeonId: selectedDungeon._id,
           units: selectedUnits,
         });
-
+  
         setBattleResult(response.data);
         setBattleLogMessages(response.data.battleLog);
       } catch (error) {
@@ -99,6 +117,8 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
       }
     }, 500);
   };
+  
+  
 
   useEffect(() => {
     if (battleLogMessages.length > 0 && currentLogIndex < battleLogMessages.length) {
@@ -148,6 +168,7 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
   const bossName = selectedDungeon?.boss?.name || "Unknown Boss";
   const bossImageUrl = selectedDungeon?.boss?.image || "";
   const dungeonName = selectedDungeon?.name || "Unknown Dungeon";
+  const actionPointCost = selectedDungeon?.actionPointCost || 0;
 
   const dungeonDetailsStyle = battleStarted ? { backgroundImage: `url(${selectedDungeon.image})` } : {};
 
@@ -171,13 +192,16 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
           />
 
           {!battleStarted && (
-            <UnitSelection
-              units={units}
-              selectedUnits={selectedUnits}
-              onUnitChange={handleUnitChange}
-              onBattleStart={handleBattle}
-              onBack={onBack}
-            />
+            <div className="dungeon-pre-battle-info">
+              <h4>AP Cost: {actionPointCost}</h4>
+              <UnitSelection
+                units={units}
+                selectedUnits={selectedUnits}
+                onUnitChange={handleUnitChange}
+                onBattleStart={handleBattle}
+                onBack={onBack}
+              />
+            </div>
           )}
 
           {error && <div className="error">{error}</div>}
@@ -200,16 +224,24 @@ const DungeonSelection = ({ selectedDungeon, onBack }) => {
               <h3>Battle Result</h3>
               <p>{battleResult.message}</p>
               <p>Gold Earned: {battleResult.goldEarned}</p>
-              <div>
-                <h4>Units Lost:</h4>
-                <ul>
-                  {Object.entries(battleResult.unitsLost).map(([unitId, quantity]) => (
-                    <li key={unitId}>
-                      {units.find(unit => unit.unit._id === unitId)?.unit.name || "Unknown Unit"}: {quantity}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {Object.keys(battleResult.unitsLost).length > 0 && (
+                <div>
+                  <h4>Units Lost:</h4>
+                  <ul>
+                    {Object.entries(battleResult.unitsLost).map(([unitId, quantity]) => {
+                      // Since unitId might be passing the unit name, let's adjust the logic here
+                      const unit = units.find(unit => unit.unit._id.toString() === unitId || unit.unit.name === unitId);
+                      const unitName = unit ? unit.unit.name : "Unknown Unit";
+
+                      return (
+                        <li key={unitId}>
+                          {unitName}: {quantity}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               {battleResult.rune && (
                 <div>
                   <h4>Rune Dropped!</h4>

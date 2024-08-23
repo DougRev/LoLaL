@@ -5,14 +5,16 @@ import './UnitManager.css';
 const UnitManager = () => {
   const [units, setUnits] = useState([]);
   const [unitName, setUnitName] = useState('');
+  const [unitTier, setUnitTier] = useState('');
   const [unitCost, setUnitCost] = useState('');
   const [unitAttack, setUnitAttack] = useState('');
   const [unitDefense, setUnitDefense] = useState('');
   const [unitHealth, setUnitHealth] = useState(''); 
   const [unitSpeed, setUnitSpeed] = useState('');
-  const [unitImage, setUnitImage] = useState(null); // New state for image
+  const [unitImage, setUnitImage] = useState(null); 
   const [isEditing, setIsEditing] = useState(false);
   const [currentUnitId, setCurrentUnitId] = useState(null);
+  const [filterTier, setFilterTier] = useState('');
 
   useEffect(() => {
     fetchUnits();
@@ -30,6 +32,7 @@ const UnitManager = () => {
   const handleCreateUnit = async () => {
     const formData = new FormData();
     formData.append('name', unitName);
+    formData.append('tier', unitTier);
     formData.append('cost', unitCost);
     formData.append('attack', unitAttack);
     formData.append('defense', unitDefense);
@@ -55,6 +58,7 @@ const UnitManager = () => {
   const handleEditUnit = async (id) => {
     const formData = new FormData();
     formData.append('name', unitName);
+    formData.append('tier', unitTier);
     formData.append('cost', unitCost);
     formData.append('attack', unitAttack);
     formData.append('defense', unitDefense);
@@ -62,7 +66,7 @@ const UnitManager = () => {
     formData.append('speed', unitSpeed);
     if (unitImage) {
       formData.append('image', unitImage);
-    }
+    }   
 
     try {
       await axios.put(`/api/units/${id}`, formData, {
@@ -85,9 +89,11 @@ const UnitManager = () => {
       console.error('Error deleting unit:', error);
     }
   };
+  
 
   const startEditing = (unit) => {
     setUnitName(unit.name);
+    setUnitTier(unit.tier);
     setUnitCost(unit.cost);
     setUnitAttack(unit.attack);
     setUnitDefense(unit.defense);
@@ -99,12 +105,13 @@ const UnitManager = () => {
 
   const clearForm = () => {
     setUnitName('');
+    setUnitTier('');
     setUnitCost('');
     setUnitAttack('');
     setUnitDefense('');
     setUnitHealth('');
     setUnitSpeed('');
-    setUnitImage(null); // Reset image
+    setUnitImage(null); 
     setCurrentUnitId(null);
     setIsEditing(false);
   };
@@ -117,6 +124,11 @@ const UnitManager = () => {
     }
   };
 
+  // Filter units by tier
+  const filteredUnits = filterTier
+    ? units.filter((unit) => unit.tier === filterTier)
+    : units;
+
   return (
     <div className="unit-manager">
       <h2>Unit Management</h2>
@@ -124,6 +136,17 @@ const UnitManager = () => {
         <div className="form-group">
           <label>Unit Name</label>
           <input type="text" value={unitName} onChange={(e) => setUnitName(e.target.value)} required />
+        </div>
+        <div className="form-group">
+          <label>Tier</label>
+          <select value={unitTier} onChange={(e) => setUnitTier(e.target.value)} required>
+            <option value="">Tier</option>
+            <option value="Basic">Basic</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+            <option value="Elite">Elite</option>
+            <option value="Mythic">Mythic</option>
+          </select>
         </div>
         <div className="form-group">
           <label>Cost</label>
@@ -161,25 +184,64 @@ const UnitManager = () => {
         </div>
       </form>
       <h3>Existing Units</h3>
-      <ul className="units-list">
-        {units.map((unit) => (
-          <li key={unit._id}>
-            <div className="unit-details">
-              <span className="unit-name">{unit.name}</span>
-              <span>Cost: {unit.cost}</span>
-              <span>Attack: {unit.attack}</span>
-              <span>Defense: {unit.defense}</span>
-              <span>Health: {unit.health}</span>
-              <span>Speed: {unit.speed}</span>
-              {unit.image && <img src={unit.image} alt={unit.name} className='unit-image' />}
-            </div>
-            <div className="unit-actions">
-              <button onClick={() => startEditing(unit)}>Edit</button>
-              <button onClick={() => handleDeleteUnit(unit._id)}>Delete</button>
-            </div>
-          </li>
-        ))}
-      </ul>
+{/* Tier Filter */}
+<div className="tier-filter">
+        <label>Filter by Tier:</label>
+        <select
+          value={filterTier}
+          onChange={(e) => setFilterTier(e.target.value)}
+        >
+          <option value="">All Tiers</option>
+          <option value="Basic">Basic</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+          <option value="Elite">Elite</option>
+          <option value="Mythic">Mythic</option>
+        </select>
+      </div>
+
+      {/* Display Units in a Table */}
+      <table className="units-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Tier</th>
+            <th>Cost</th>
+            <th>Attack</th>
+            <th>Defense</th>
+            <th>Health</th>
+            <th>Speed</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredUnits.map((unit) => (
+            <tr key={unit._id}>
+              <td className="unit-image-cell">
+                {unit.image && (
+                  <img
+                    src={unit.image}
+                    alt={`${unit.name} image`}
+                    className="unit-image-preview"
+                  />
+                )}
+              </td>
+              <td>{unit.name}</td>
+              <td>{unit.tier}</td>
+              <td>{unit.cost}</td>
+              <td>{unit.attack}</td>
+              <td>{unit.defense}</td>
+              <td>{unit.health}</td>
+              <td>{unit.speed}</td>
+              <td>
+                <button onClick={() => startEditing(unit)}>Edit</button>
+                <button onClick={() => handleDeleteUnit(unit._id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

@@ -1,19 +1,60 @@
-.player-stats {
-    margin-top: 20px;
-    background-color: var(--color-rich-black);
-    padding: 15px;
-    border-radius: 5px;
-    color: var(--color-cornsilk);
-  }
-  
-  .player-stats h2 {
-    margin-bottom: 15px;
-    font-size: 1.5em;
-    color: var(--color-cornsilk);
-  }
-  
-  .player-stats .stats p {
-    margin: 5px 0;
-    font-size: 1.1em;
-  }
-  
+@import '../styles/colors.css';
+
+.player-stats-container {
+  justify-content: space-between;
+  margin-top: 20px;
+  background-color: var(--color-black);
+  padding: 20px;
+  border-radius: 10px;
+  color: var(--color-beige);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+  width: 50%;
+}
+
+
+
+.player-stats h2,
+.rune-stats h2 {
+  margin-bottom: 15px;
+  font-size: 1.8em;
+  color: var(--color-beige);
+  text-align: center;
+  border-bottom: 2px solid var(--color-chamoisee);
+  padding-bottom: 10px;
+}
+
+.stats-grid {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+
+.player-stats .stats p {
+  margin: 5px 10px;
+  font-size: 1.2em;
+}
+
+.rune-items {
+  display: flex;
+  justify-content: space-around;
+}
+
+.rune-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.rune-item p {
+  margin-top: 5px;
+  font-size: 1.1em;
+  color: var(--color-beige);
+}
+
+.rune-icon {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 5px;
+}

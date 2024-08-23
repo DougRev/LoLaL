@@ -15,7 +15,7 @@ const UserManagement = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('UserManagement: Sending token:', token);
-      const response = await axios.get('/api/admin/users', {
+      const response = await axios.get('/api/users/admin/users', {
         headers: { 'x-auth-token': token }
       });
       setUsers(response.data);
@@ -33,7 +33,7 @@ const UserManagement = () => {
   const handleSaveRole = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/admin/users/${id}`, { role: editUserRole }, {
+      await axios.put(`/api/users/admin/users/${id}`, { role: editUserRole }, {
         headers: { 'x-auth-token': token }
       });
       setEditUserId(null);
@@ -47,7 +47,7 @@ const UserManagement = () => {
   const handleDeleteUser = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/admin/users/${id}`, {
+      await axios.delete(`/api/users/admin/users/${id}`, {
         headers: { 'x-auth-token': token }
       });
       fetchUsers();

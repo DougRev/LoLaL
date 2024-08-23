@@ -1,4 +1,5 @@
 import { createContext, useReducer, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 
@@ -43,6 +44,8 @@ const authReducer = (state, action) => {
 };
 
 const AuthProvider = ({ children }) => {
+  const navigate = useNavigate();
+
   const initialState = {
     token: localStorage.getItem('token'),
     refreshToken: localStorage.getItem('refreshToken'),
@@ -70,16 +73,14 @@ const AuthProvider = ({ children }) => {
     console.log('Stored tokens:', { token, refreshToken });
   };
 
-
-   // Function to refresh Google OAuth token
-   const refreshGoogleToken = useCallback(async () => {
+  // Function to refresh Google OAuth token
+  const refreshGoogleToken = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
         return dispatch({ type: 'LOGOUT' });
       }
 
-      // Make a request to Google's OAuth token endpoint to refresh the token
       const res = await axios.post('https://oauth2.googleapis.com/token', {
         client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
         client_secret: process.env.REACT_APP_GOOGLE_CLIENT_SECRET,
@@ -88,9 +89,12 @@ const AuthProvider = ({ children }) => {
       });
 
       const { access_token, refresh_token } = res.data;
-      storeTokens(access_token, refresh_token || refreshToken);  // Google might not always return a new refresh token
+      storeTokens(access_token, refresh_token || refreshToken);
       setAuthHeaders(access_token);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { token: access_token, refreshToken: refresh_token || refreshToken, user: state.user } });
+      dispatch({
+        type: 'GOOGLE_LOGIN_SUCCESS',
+        payload: { token: access_token, refreshToken: refresh_token || refreshToken, user: state.user },
+      });
     } catch (error) {
       console.error('Error refreshing Google token:', error);
       dispatch({ type: 'LOGOUT' });
@@ -98,7 +102,6 @@ const AuthProvider = ({ children }) => {
   }, [state.user]);
 
   const refreshAccessToken = useCallback(async () => {
-    // If the user is logged in via Google OAuth
     if (state.user?.isGoogleUser) {
       await refreshGoogleToken();
     } else {
@@ -112,17 +115,20 @@ const AuthProvider = ({ children }) => {
         const { token, refreshToken: newRefreshToken } = res.data;
         storeTokens(token, newRefreshToken);
         setAuthHeaders(token);
-        dispatch({ type: 'LOGIN_SUCCESS', payload: { token, refreshToken: newRefreshToken, user: state.user } });
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: { token, refreshToken: newRefreshToken, user: state.user },
+        });
       } catch (error) {
+        console.error('Error refreshing token:', error);
         dispatch({ type: 'LOGOUT' });
       }
     }
   }, [state.user, refreshGoogleToken]);
-
+  
   const register = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      console.log('Registering user with form data:', formData);
       const res = await axios.post('/api/users/register', formData, config);
       const { token, refreshToken } = res.data;
       storeTokens(token, refreshToken);
@@ -139,7 +145,6 @@ const AuthProvider = ({ children }) => {
   const login = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      console.log('Logging in user with form data:', formData);
       const res = await axios.post('/api/users/login', formData, config);
       const { token, refreshToken } = res.data;
       storeTokens(token, refreshToken);
@@ -159,13 +164,17 @@ const AuthProvider = ({ children }) => {
         setAuthHeaders(token);
         const userRes = await axios.get('/api/users/user', { headers: { 'x-auth-token': token } });
         if (userRes.data) {
-          const { _id, name, email, role, kingdom, faction } = userRes.data;
-          const user = { _id, name, email, role, kingdom, faction, isGoogleUser: true };
-          dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token, refreshToken: state.refreshToken, user } });
+          const completeUser = {
+            ...userRes.data,
+            stats: userRes.data.stats || { total: { attack: 10, defense: 10, speed: 5, health: 100 } },
+            runeCollection: userRes.data.runeCollection || {
+              common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0,
+            },
+          };
+          dispatch({ type: 'GOOGLE_LOGIN_SUCCESS', payload: { token, refreshToken: state.refreshToken, user: completeUser } });
   
-          if (kingdom && kingdom._id) {
-            // Fetch the kingdom only if kingdom data is available
-            await fetchKingdom(kingdom._id);
+          if (completeUser.kingdom && completeUser.kingdom._id) {
+            await fetchKingdom(completeUser.kingdom._id);
           } else {
             console.warn('User kingdom not found');
           }
@@ -181,7 +190,7 @@ const AuthProvider = ({ children }) => {
       console.error('Google login error:', error);
       dispatch({ type: 'LOGOUT' });
     }
-  };
+  };  
 
   
   const clearTokens = () => {
@@ -192,10 +201,8 @@ const AuthProvider = ({ children }) => {
 
   const fetchKingdom = useCallback(async (kingdomId) => {
     try {
-      console.log(`Fetching kingdom with ID: ${kingdomId}`);
       const response = await axios.get(`/api/kingdoms/${kingdomId}`);
       dispatch({ type: 'UPDATE_KINGDOM', payload: { kingdom: response.data } });
-      console.log('Fetched kingdom:', response.data);
     } catch (error) {
       console.error('Error fetching kingdom:', error);
     }
@@ -212,15 +219,22 @@ const AuthProvider = ({ children }) => {
         setAuthHeaders(token);
         try {
           const res = await axios.get('/api/users/user');
-          console.log('USER HERE:', res.data);
           if (res.data) {
-            dispatch({ type: 'LOGIN_SUCCESS', payload: { token, refreshToken, user: res.data } });
-            if (res.data.kingdom) {
-              fetchKingdom(res.data.kingdom._id);
+            const completeUser = {
+              ...res.data,
+              stats: res.data.stats || { total: { attack: 0, defense: 0, speed: 0, health: 100 } },
+              runeCollection: res.data.runeCollection || {
+                common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0,
+              },
+              highestDungeon: res.data.highestDungeon || 0,
+              highestRegion: res.data.highestRegion || 0,
+            };
+            dispatch({ type: 'LOGIN_SUCCESS', payload: { token, refreshToken, user: completeUser } });
+            if (completeUser.kingdom) {
+              fetchKingdom(completeUser.kingdom._id);
             }
-            if (!res.data.faction) {
-              // If the user doesn't have a faction, redirect to select-faction
-              window.location.href = '/select-faction';
+            if (!completeUser.faction && window.location.pathname !== '/select-faction') {
+              navigate('/select-faction');
             }
           }
         } catch (error) {
@@ -231,8 +245,7 @@ const AuthProvider = ({ children }) => {
     } else {
       dispatch({ type: 'LOGOUT' });
     }
-  }, [refreshAccessToken, fetchKingdom]);
-  
+  }, [refreshAccessToken, fetchKingdom, navigate]);
 
   const checkTokenExpiration = (token) => {
     if (!token) return true;
@@ -250,22 +263,54 @@ const AuthProvider = ({ children }) => {
       dispatch({ type: 'LOGOUT' });
       setTimeout(() => {
         window.location.href = '/';
-      }, 200); // 200ms delay for cleanup
+      }, 200);
     } catch (error) {
       console.error('Logout error:', error);
     }
   }, []);
-  
+
+  // New response interceptor for handling token expiration
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      response => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && error.response.data.expired) {
+          try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) {
+              return dispatch({ type: 'LOGOUT' });
+            }
+
+            const res = await axios.post('/api/users/refresh-token', { token: refreshToken });
+            const { token: newAccessToken, refreshToken: newRefreshToken } = res.data;
+
+            localStorage.setItem('token', newAccessToken);
+            localStorage.setItem('refreshToken', newRefreshToken);
+
+            axios.defaults.headers.common['x-auth-token'] = newAccessToken;
+            originalRequest.headers['x-auth-token'] = newAccessToken;
+
+            return axios(originalRequest);
+          } catch (refreshError) {
+            console.error('Error refreshing token:', refreshError);
+            dispatch({ type: 'LOGOUT' });
+            return Promise.reject(refreshError);
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptor);
+  }, [dispatch]);
 
   useEffect(() => {
     if (state.loading) {
       fetchUser();
     }
   }, [fetchUser, state.loading]);
-
-  useEffect(() => {
-    console.log('Auth state updated:', state);
-  }, [state]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -276,7 +321,6 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // Interceptor to check token expiration and refresh if necessary
     const requestInterceptor = axios.interceptors.request.use(async (config) => {
       const token = localStorage.getItem('token');
       if (checkTokenExpiration(token)) {

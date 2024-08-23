@@ -13,9 +13,33 @@ code {
 
 
 .content.authenticated {
-  margin-left: 250px; /* Match the width of the navbar */
+  margin-left: 220px; /* Match the width of the navbar */
+  background: url('../public/images/dashboard-bg.png') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed; /* Creates the parallax effect */
   padding: 20px;
+  min-height: 100vh;
+  position: relative; /* Make sure the pseudo-element is positioned relative to this element */
 }
+
+.content.authenticated::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75); /* Black overlay with 50% opacity */
+  z-index: 0; /* Ensure it stays behind the content */
+  pointer-events: none; /* Allow clicks to pass through the overlay */
+}
+
+/* Ensure your actual content inside this class is positioned above the overlay */
+.content.authenticated > * {
+  position: relative;
+  z-index: 1;
+}
+
 
 .loading {
   margin-left: 270px;

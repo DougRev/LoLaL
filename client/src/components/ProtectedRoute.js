@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useContext(AuthContext);
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const { isAuthenticated, user } = useContext(AuthContext);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,13 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" />;
   }
 
-  console.log('User authenticated, rendering children');
+  // Role-based access control
+  if (requiredRole && user?.role !== requiredRole) {
+    console.log(`User does not have the required role: ${requiredRole}, redirecting to unauthorized page`);
+    return <Navigate to="/unauthorized" />;
+  }
+
+  console.log('User authenticated and authorized, rendering children');
   return children;
 };
 

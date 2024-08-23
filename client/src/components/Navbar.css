@@ -11,9 +11,25 @@
   z-index: 10;
   overflow-y: auto;
   padding-left: 0;
+  background: url('../images/navbar-bg.png') no-repeat center center;
+
 }
+
+.navbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95); /* Black overlay with 50% opacity */
+  z-index: -100; /* Ensure it stays behind the content */
+  pointer-events: none; /* Allow clicks to pass through the overlay */
+}
+
+
 .navbar {
-  border: solid 1px rgba(58, 70, 105, 0.452);
+  border: solid 1px rgba(126, 126, 126, 0.8);
   padding-left: 0;
 }
 
@@ -52,18 +68,19 @@
   padding-top: 15px;
   padding-bottom: 15px;
   text-decoration: none;
-  color: var(--color-cornsilk); /* Light text color */
+  color: var(--color-white); 
   text-align: center;
   width: 100%;
   border-radius: 10px;
-  background-color: var(--color-feldgrau); /* Dark green background */
+  background-color: var(--color-black); 
   box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   margin: 10px 0;
+  border: solid 1px rgb(152 125 64 / 30%);
 }
 
 .nav-links a:hover, .nav-links button:hover {
-  background-color: var(--color-rufous); /* Red hover color */
+  background-color: var(--color-chamoisee);
   box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.1), inset -1px -1px 3px rgba(0, 0, 0, 0.6), 0 0 5px rgba(255, 255, 255, 0.2);
 }
 

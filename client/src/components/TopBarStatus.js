@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCoins, faFistRaised, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
 import attackIcon from '../icons/sword.png';
@@ -6,8 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import './TopBarStatus.css';
 
 const TopBarStatus = () => {
-  const { kingdom, triggerFetchKingdom } = useContext(AuthContext);
-
+  const { kingdom } = useContext(AuthContext);
 
   return (
     <div className="top-bar-status">

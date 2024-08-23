@@ -2,9 +2,76 @@
   padding: 30px;
   background-color: #2c3e50;
   border-radius: 10px;
-  max-width: 900px; /* Slightly wider for better spacing */
+  max-width: 900px;
   margin: 0 auto;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.units-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.units-table th,
+.units-table td {
+  padding: 10px;
+  text-align: center;
+  color: #ecf0f1;
+  border-bottom: 1px solid #34495e;
+}
+
+.units-table th {
+  background-color: #34495e;
+}
+
+.unit-image-preview {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.tier-filter {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tier-filter label {
+  color: #ecf0f1;
+}
+
+.tier-filter select {
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #34495e;
+  background-color: #34495e;
+  color: #ecf0f1;
+}
+
+.unit-actions button {
+  margin-right: 5px;
+  padding: 5px 10px;
+  background-color: #1abc9c;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.unit-actions button:hover {
+  background-color: #16a085;
+}
+
+.unit-actions button.cancel-button {
+  background-color: #e74c3c;
+}
+
+.unit-actions button.cancel-button:hover {
+  background-color: #c0392b;
 }
 
 .unit-manager h2 {

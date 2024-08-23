@@ -1,3 +1,6 @@
+@import '../styles/colors.css';
+
+
 .upgrades-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -16,6 +19,7 @@
   overflow: hidden;
   transition: transform 0.3s ease, background 0.3s ease;
   min-height: 200px;
+  border: solid 1px white;
 }
   
 .upgrade-card::before {
@@ -41,6 +45,7 @@
   background: #444;
   transform: translateY(-10px);
   background-size: cover; 
+  border: solid 1px var( --color-chamoisee);
 }
 
 .upgrade-card:hover::before {
@@ -56,7 +61,7 @@
 }
 
 .upgrade-card button {
-  background: #083141;
+  background: var(--color-chamoisee);
   border: none;
   border-radius: 5px;
   color: #fff;
@@ -66,5 +71,5 @@
 }
 
 .upgrade-card button:hover {
-  background: #3786bb;
+  background: rgb(219, 194, 51);
 }

@@ -25,7 +25,7 @@ const dungeonSchema = new mongoose.Schema({
   level: { type: Number, required: true },
   boss: { type: bossSchema, required: true },
   reward: { type: rewardSchema, required: true },
-  region: { type: mongoose.Schema.Types.ObjectId, ref: 'Region', required: true }, // Reference to Region model
+  region: { type: mongoose.Schema.Types.ObjectId, ref: 'Region', required: true }, 
   image: { type: String },
   actionPointCost: { type: Number, required: true, default: 1 }
 });

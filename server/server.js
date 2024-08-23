@@ -5,15 +5,14 @@ const dotenv = require('dotenv');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const session = require('express-session'); 
-const auth = require('./middleware/auth');
-const adminAuth = require('./middleware/adminMiddleware');
+const { auth } = require('./middleware/auth');
 const Faction = require('./models/Faction');
-
+const kingdomRoutes = require('./routes/kingdomRoutes');
 const unitRoutes = require('./routes/unitRoutes');
 const dungeonRoutes = require('./routes/dungeonRoutes');
 const factionRoutes = require('./routes/factionRoutes');
-const pvpRoutes = require('./routes/pvpRoutes');
-
+const userRoutes = require('./routes/userRoutes');
+const regionRoutes = require('./routes/regionRoutes');
 require('./config/passport');
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -41,14 +40,13 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   .catch((err) => console.log(err));
 
 // Routes
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/admin', auth, adminAuth, require('./routes/adminRoutes')); 
+app.use('/api/users', userRoutes);
 app.use('/api/units', unitRoutes);
-app.use('/api/kingdoms', require('./routes/kingdomRoutes'));
+app.use('/api/kingdoms', kingdomRoutes); 
 app.use('/api/upgrades', require('./routes/upgradeRoutes'));
 app.use('/api/dungeons', dungeonRoutes);
 app.use('/api/factions', factionRoutes);
-app.use('/api/pvp', pvpRoutes);
+app.use('/api/regions',regionRoutes);
 
 // Google OAuth Routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -72,30 +70,70 @@ app.get('/api/logout', (req, res) => {
   res.sendStatus(200);
 });
 
+// Generic Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-
-async function createDefaultFaction() {
+// Create predefined factions
+async function createDefaultFactions() {
   try {
-      const existingFaction = await Faction.findOne({ name: 'Default Faction' });
-      if (!existingFaction) {
-          const defaultFaction = new Faction({
-              name: 'Default Faction',
-              description: 'This is the default faction.',
-              advantage: 'No specific advantages.',
-              disadvantage: 'No specific disadvantages.',
-              image: 'default-image-url' // Provide a default image URL or path
-          });
-          await defaultFaction.save();
-          console.log('Default Faction created.');
-      } else {
-          console.log('Default Faction already exists.');
+    const factions = [
+      {
+        name: 'Warrior Brotherhood',
+        description: 'A faction focused on brute strength and battlefield dominance.',
+        advantage: '+10% bonus to all offensive stats.',
+        disadvantage: '-10% reduction in defensive structures effectiveness.',
+        image: 'URL_to_warrior_image'
+      },
+      {
+        name: 'Arcane Alliance',
+        description: 'Masters of magic and strategy, they excel in using magical runes.',
+        advantage: '+10% bonus to all rune stats (attack, defense, speed, health).',
+        disadvantage: '-10% reduction in physical army effectiveness.',
+        image: 'URL_to_arcane_image'
+      },
+      {
+        name: 'Defensive Coalition',
+        description: 'A faction that prioritizes defense and resilience.',
+        advantage: '+15% bonus to defensive structures and wall fortifications.',
+        disadvantage: '-10% reduction in gold production rate.',
+        image: 'URL_to_defensive_image'
+      },
+      {
+        name: 'Trade Consortium',
+        description: 'Wealthy traders who focus on gold production and economic power.',
+        advantage: '+20% increase in gold production rate.',
+        disadvantage: '-10% reduction in army and defensive structures’ effectiveness.',
+        image: 'URL_to_trade_image'
+      },
+      {
+        name: 'Nomadic Raiders',
+        description: 'Agile and quick, they favor mobility and rapid strikes.',
+        advantage: '+10% bonus to speed and a chance to raid extra gold from attacks.',
+        disadvantage: '-10% reduction in health and defensive stats.',
+        image: 'URL_to_nomadic_image'
       }
+    ];
+
+    for (const faction of factions) {
+      const existingFaction = await Faction.findOne({ name: faction.name });
+      if (!existingFaction) {
+        await Faction.create(faction);
+        console.log(`${faction.name} created.`);
+      } else {
+        console.log(`${faction.name} already exists.`);
+      }
+    }
   } catch (error) {
-      console.error('Error creating default faction:', error);
+    console.error('Error creating predefined factions:', error);
   }
 }
 
 // Call the function during server startup
-//createDefaultFaction();
+//createDefaultFactions();

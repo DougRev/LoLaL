@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import ProfileInfo from '../components/ProfileInfo';
 import AccountSecurity from '../components/AccountSecurity';
-// Import other components as needed
+import './Profile.css';
+
 
 const Profile = () => {
   const [activeSection, setActiveSection] = useState('profileInfo');

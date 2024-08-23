@@ -1,4 +1,5 @@
 const Kingdom = require('../models/Kingdom');
+const upgradeFormulas = require('../utils/upgradeFormulas');
 
 const updateGoldProduction = async (kingdomId) => {
   const kingdom = await Kingdom.findById(kingdomId);
@@ -36,6 +37,59 @@ const updateActionPoints = async (kingdomId) => {
   return kingdom;
 };
 
+// Implement the dynamic upgrade logic using formulas
+const purchaseUpgrade = async (req, res) => {
+  const { userId, upgradeType } = req.body;
+
+  try {
+    const kingdom = await Kingdom.findOne({ user: userId });
+    if (!kingdom) {
+      return res.status(404).json({ message: 'Kingdom not found' });
+    }
+
+    const currentLevel = kingdom[upgradeType]?.level || 0;
+    const nextUpgrade = upgradeFormulas[upgradeType](currentLevel + 1);
+
+    if (!nextUpgrade) {
+      return res.status(400).json({ message: 'Max level reached or upgrade not available.' });
+    }
+
+    if (kingdom.gold < nextUpgrade.cost) {
+      return res.status(400).json({ message: 'Not enough gold for upgrade.' });
+    }
+
+    // Deduct the cost and apply the upgrade
+    kingdom.gold -= nextUpgrade.cost;
+    kingdom[upgradeType] = {
+      level: currentLevel + 1,
+      name: nextUpgrade.name,
+      cost: nextUpgrade.cost,
+      bonus: nextUpgrade.bonus,
+    };
+
+    await kingdom.save();
+
+    res.json(kingdom);
+  } catch (error) {
+    console.error('Error purchasing upgrade:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getAllKingdoms = async (req, res) => {
+  try {
+    const kingdoms = await Kingdom.find()
+      .populate('user', 'name') // Populate the user to get the name
+      .populate('faction', 'name'); // Populate the faction to get the name
+
+    res.json(kingdoms);
+  } catch (error) {
+    console.error('Error fetching kingdoms:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Fetch a specific kingdom and update its gold and action points
 const getKingdom = async (req, res) => {
   try {
     const kingdom = await updateGoldProduction(req.params.id);
@@ -52,6 +106,7 @@ const getKingdom = async (req, res) => {
   }
 };
 
+// Fetch a kingdom by its ID
 const getKingdomById = async (req, res) => {
   try {
     const kingdom = await Kingdom.findById(req.params.id).populate('owner');
@@ -66,6 +121,7 @@ const getKingdomById = async (req, res) => {
   }
 };
 
+// Example vault upgrade (this can also be adapted to use the dynamic formula if needed)
 const upgradeVault = async (req, res) => {
   const { userId } = req.body;
 
@@ -152,7 +208,8 @@ const withdrawGold = async (req, res) => {
 
 module.exports = {
   getKingdom,
-  getKingdomById,
+  getAllKingdoms,
+  purchaseUpgrade,
   upgradeVault,
   depositGold,
   withdrawGold,
