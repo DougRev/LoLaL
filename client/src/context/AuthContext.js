@@ -324,17 +324,18 @@ const AuthProvider = ({ children }) => {
     const requestInterceptor = axios.interceptors.request.use(async (config) => {
       const token = localStorage.getItem('token');
       if (checkTokenExpiration(token)) {
-        await refreshAccessToken();
+        await refreshAccessToken(); // Refresh the token if it's expired or about to expire
       }
       return config;
     }, (error) => {
       return Promise.reject(error);
     });
-
+  
     return () => {
       axios.interceptors.request.eject(requestInterceptor);
     };
   }, [refreshAccessToken]);
+  
 
   return (
     <AuthContext.Provider value={{ ...state, register, login, googleLogin, logout, fetchUser, fetchKingdom }}>

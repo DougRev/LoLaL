@@ -32,12 +32,6 @@ const UserSchema = new mongoose.Schema({
       defense: { type: Number, default: 0 },
       speed: { type: Number, default: 0 },
       health: { type: Number, default: 0 }
-    },
-    total: {
-      attack: { type: Number, default: 0 },
-      defense: { type: Number, default: 0 },
-      speed: { type: Number, default: 0 },
-      health: { type: Number, default: 100 }
     }
   },
   
@@ -50,8 +44,18 @@ const UserSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Method to calculate total stats dynamically
+UserSchema.methods.calculateTotalStats = function () {
+  return {
+    attack: this.stats.base.attack + this.stats.runes.attack,
+    defense: this.stats.base.defense + this.stats.runes.defense,
+    speed: this.stats.base.speed + this.stats.runes.speed,
+    health: this.stats.base.health + this.stats.runes.health
+  };
+};
+
+// Pre-save hook (can be used if any additional logic is needed before saving)
 UserSchema.pre('save', function(next) {
-  const user = this;
   // Additional logic can be added here if needed before saving the user
   next();
 });

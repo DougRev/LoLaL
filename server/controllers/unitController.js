@@ -14,6 +14,39 @@ const getAllUnits = async (req, res) => {
   }
 };
 
+const getAvailableUnits = async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const user = await User.findById(userId).populate('kingdom');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const barracksLevel = user.kingdom.barracks?.level || 0;
+
+    // Log the barracks level and kingdom info for debugging purposes
+    console.log(`User's Barracks Level: ${barracksLevel}`);
+    console.log(`Kingdom Info: ${JSON.stringify(user.kingdom)}`);
+
+    // Fetch units that are unlocked based on the barracks level
+    const units = await Unit.find({ barracksLevel: { $lte: barracksLevel } });
+
+    // Log the fetched units for debugging
+    console.log(`Available Units for Barracks Level ${barracksLevel}:`, units);
+
+    if (units.length === 0) {
+      return res.status(200).json({ message: 'No units available at this barracks level.' });
+    }
+
+    res.json(units);
+  } catch (error) {
+    console.error('Error fetching available units:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
 // Get unit by ID
 const getUnitById = async (req, res) => {
   try {
@@ -29,8 +62,7 @@ const getUnitById = async (req, res) => {
 
 // Create a new unit (admin only)
 const createUnit = async (req, res) => {
-  const { name, tier, cost, attack, defense, health, speed } = req.body;
-  console.log(name, tier, cost, attack, defense, health, speed);
+  const { name, tier, cost, attack, defense, health, speed, barracksLevel } = req.body; // Include barracksLevel
 
   let imageUrl = '';
   if (req.file) {
@@ -52,6 +84,7 @@ const createUnit = async (req, res) => {
       speed,
       cost,
       tier,
+      barracksLevel, // Save barracksLevel
       image: imageUrl, // Add image URL if provided
     });
 
@@ -64,10 +97,11 @@ const createUnit = async (req, res) => {
 };
 
 
+
 // Update a unit by ID (admin only)
 const updateUnit = async (req, res) => {
   const { id } = req.params;
-  const { name, attack, defense, health, speed, cost, tier } = req.body;
+  const { name, attack, defense, health, speed, cost, tier, barracksLevel } = req.body; // Include barracksLevel
 
   try {
     const unit = await Unit.findById(id);
@@ -94,6 +128,7 @@ const updateUnit = async (req, res) => {
     if (speed) unit.speed = speed;
     if (cost) unit.cost = cost;
     if (tier) unit.tier = tier;
+    if (barracksLevel !== undefined) unit.barracksLevel = barracksLevel; // Save barracksLevel
     unit.image = imageUrl; // Update image URL if a new image is uploaded
 
     const updatedUnit = await unit.save();
@@ -103,6 +138,7 @@ const updateUnit = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
 
 // Delete a unit by ID (admin only)
 const deleteUnit = async (req, res) => {
@@ -271,6 +307,7 @@ const reassignUnit = async (req, res) => {
 
 module.exports = {
   getAllUnits,
+  getAvailableUnits,
   getUnitById,
   createUnit,
   updateUnit,

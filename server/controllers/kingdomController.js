@@ -1,5 +1,5 @@
 const Kingdom = require('../models/Kingdom');
-const upgradeFormulas = require('../utils/upgradeFormulas');
+const { upgradeFormulas } = require('../utils/upgradeFormulas');
 
 const updateGoldProduction = async (kingdomId) => {
   const kingdom = await Kingdom.findById(kingdomId);

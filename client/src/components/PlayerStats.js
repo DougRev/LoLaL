@@ -7,37 +7,42 @@ import epicRuneIcon from '../icons/epic-rune.png';
 import legendaryRuneIcon from '../icons/legendary-rune.png';
 
 const PlayerStats = ({ user }) => {
-    useEffect(() => {
-      if (user && user.stats) {
-        console.log('USER STATS:', user.stats);
-      } else {
-        console.log('Stats not available yet');
-      }
-    }, [user]);
-  
-    // Wait for the full user data before rendering
-    if (!user || !user.stats || !user.runeCollection) {
-      return <div>Loading player stats...</div>; // Loading state
+  useEffect(() => {
+    if (user && user.stats) {
+      console.log('USER STATS:', user.stats);
+    } else {
+      console.log('Stats not available yet');
     }
-  
-    const { total } = user.stats;
-    const runeCollection = user.runeCollection;
+  }, [user]);
+
+  if (!user || !user.stats || !user.runeCollection) {
+    return <div>Loading player stats...</div>; // Loading state
+  }
+
+  // Calculate total stats dynamically based on base stats and runes
+  const calculateTotalStats = () => {
+    return {
+      attack: user.stats.base.attack + user.stats.runes.attack,
+      defense: user.stats.base.defense + user.stats.runes.defense,
+      speed: user.stats.base.speed + user.stats.runes.speed,
+      health: user.stats.base.health + user.stats.runes.health
+    };
+  };
+
+  const total = calculateTotalStats();
+  const runeCollection = user.runeCollection;
 
   return (
     <div className="player-stats-container">
       <div className="player-stats">
         <h2>Player Stats</h2>
         <div className="stats-grid">
-          {total ? (
-            <>
-              <p><strong>Attack:</strong> {total.attack}</p>
-              <p><strong>Defense:</strong> {total.defense}</p>
-              <p><strong>Speed:</strong> {total.speed}</p>
-              <p><strong>Health:</strong> {total.health}</p>
-            </>
-          ) : (
-            <p>No stats available</p>
-          )}
+          <>
+            <p><strong>Attack:</strong> {total.attack}</p>
+            <p><strong>Defense:</strong> {total.defense}</p>
+            <p><strong>Speed:</strong> {total.speed}</p>
+            <p><strong>Health:</strong> {total.health}</p>
+          </>
         </div>
       </div>
 

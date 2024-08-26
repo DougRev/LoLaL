@@ -19,13 +19,12 @@ const auth = async function (req, res, next) {
       return res.status(401).json({ msg: 'User not found, authorization denied' });
     }
 
-    req.user.role = user.role; // Attach user role to the request object
+    req.user.role = user.role;
     next();
   } catch (err) {
     console.error('Token error:', err);
 
     if (err.name === 'TokenExpiredError') {
-      // Return a specific message and status indicating that the token has expired
       return res.status(401).json({ msg: 'Token expired', expired: true });
     }
 

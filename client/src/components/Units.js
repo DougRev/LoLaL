@@ -3,38 +3,33 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import './Units.css';
 
-const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
+const Units = ({ onUnitPurchase, onKingdomUpdate }) => {
   const { user, fetchKingdom } = useContext(AuthContext); 
+  const [units, setUnits] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [error, setError] = useState(null);
   const [currentUnits, setCurrentUnits] = useState({});
   const [expandedUnitId, setExpandedUnitId] = useState(null);
+  const [selectedTier, setSelectedTier] = useState('All'); // New state for tier filtering
   const detailsRef = useRef(null);
 
   useEffect(() => {
-    const fetchCurrentUnits = async () => {
-      if (user && user.kingdom && user.kingdom._id) {
+    const fetchAvailableUnits = async () => {
+      if (user) {
         try {
-          const response = await axios.get(`/api/kingdoms/${user.kingdom._id}`);
-          const army = response.data.army;
-          const unitCounts = army.reduce((acc, unit) => {
-            const unitId = unit.unit._id || unit.unit;
-            if (!acc[unitId]) {
-              acc[unitId] = 0;
-            }
-            acc[unitId] += unit.quantity;
-            return acc;
-          }, {});
-          setCurrentUnits(unitCounts);
+          const response = await axios.get(`/api/units/available?userId=${user._id}`);
+          console.log("Fetched units:", response.data); // Log the response
+          setUnits(Array.isArray(response.data) ? response.data : []); // Ensure it's an array
         } catch (error) {
-          console.error('Error fetching current units:', error);
-          setError('Failed to fetch current units. Please try again.');
+          console.error('Error fetching available units:', error);
+          setError('Failed to fetch units. Please try again.');
         }
       }
     };
-
-    fetchCurrentUnits();
+  
+    fetchAvailableUnits();
   }, [user]);
+  
 
   const handleQuantityChange = (e, unitId) => {
     const value = e.target.value;
@@ -101,7 +96,6 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
       }
     }
   };
-  
 
   const toggleDetails = (unitId) => {
     setExpandedUnitId(expandedUnitId === unitId ? null : unitId);
@@ -117,6 +111,16 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
     }
   };
 
+  const handleTierChange = (tier) => {
+    setSelectedTier(tier);
+  };
+
+  const filteredUnits = Array.isArray(units) ? units.filter((unit) => {
+    if (selectedTier === 'All') return true;
+    return unit.tier === selectedTier;
+  }) : [];
+  
+
   const selectedUnits = Object.entries(quantities)
     .filter(([_, quantity]) => quantity > 0)
     .map(([unitId, quantity]) => {
@@ -130,9 +134,18 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
     <div className="units-container">
       <h2>Units for Sale</h2>
       <p>Your army is everything to defending your empire and expanding it. Recruitment is just a few gold coins away.</p>
+
+      {/* Tier Filters */}
+      <div className="tier-filters">
+        <button onClick={() => handleTierChange('All')} className={selectedTier === 'All' ? 'active' : ''}>All</button>
+        <button onClick={() => handleTierChange('Basic')} className={selectedTier === 'Basic' ? 'active' : ''}>Basic</button>
+        <button onClick={() => handleTierChange('Intermediate')} className={selectedTier === 'Intermediate' ? 'active' : ''}>Intermediate</button>
+        <button onClick={() => handleTierChange('Advanced')} className={selectedTier === 'Advanced' ? 'active' : ''}>Advanced</button>
+      </div>
+
       <div className="units-list">
-        {units.length > 0 ? (
-          units.map((unit, index) => (
+        {filteredUnits.length > 0 ? (
+          filteredUnits.map((unit, index) => (
             <div key={`${unit._id}-${index}`} className="unit-wrapper">
               <div
                 className="unit-card"
@@ -168,7 +181,7 @@ const Units = ({ units, onUnitPurchase, onKingdomUpdate }) => {
             </div>
           ))
         ) : (
-          <p>No units available. Please create a unit first.</p>
+          <p>No units available. Try Upgrading your Barracks.</p>
         )}
       </div>
 

@@ -12,6 +12,7 @@ const UnitManager = () => {
   const [unitHealth, setUnitHealth] = useState(''); 
   const [unitSpeed, setUnitSpeed] = useState('');
   const [unitImage, setUnitImage] = useState(null); 
+  const [barracksLevel, setBarracksLevel] = useState(''); 
   const [isEditing, setIsEditing] = useState(false);
   const [currentUnitId, setCurrentUnitId] = useState(null);
   const [filterTier, setFilterTier] = useState('');
@@ -19,6 +20,13 @@ const UnitManager = () => {
   useEffect(() => {
     fetchUnits();
   }, []);
+
+  useEffect(() => {
+    if (isEditing && barracksLevel === '') {
+      setBarracksLevel(0);
+    }
+  }, [isEditing, barracksLevel]);
+  
 
   const fetchUnits = async () => {
     try {
@@ -38,6 +46,7 @@ const UnitManager = () => {
     formData.append('defense', unitDefense);
     formData.append('health', unitHealth);
     formData.append('speed', unitSpeed);
+    formData.append('barracksLevel', barracksLevel); 
     if (unitImage) {
       formData.append('image', unitImage);
     }
@@ -64,6 +73,7 @@ const UnitManager = () => {
     formData.append('defense', unitDefense);
     formData.append('health', unitHealth);
     formData.append('speed', unitSpeed);
+    formData.append('barracksLevel', barracksLevel); 
     if (unitImage) {
       formData.append('image', unitImage);
     }   
@@ -89,7 +99,6 @@ const UnitManager = () => {
       console.error('Error deleting unit:', error);
     }
   };
-  
 
   const startEditing = (unit) => {
     setUnitName(unit.name);
@@ -99,6 +108,7 @@ const UnitManager = () => {
     setUnitDefense(unit.defense);
     setUnitHealth(unit.health);
     setUnitSpeed(unit.speed);
+    setBarracksLevel(unit.barracksLevel); 
     setCurrentUnitId(unit._id);
     setIsEditing(true);
   };
@@ -112,18 +122,28 @@ const UnitManager = () => {
     setUnitHealth('');
     setUnitSpeed('');
     setUnitImage(null); 
+    setBarracksLevel(''); 
     setCurrentUnitId(null);
     setIsEditing(false);
   };
 
-  const handleSubmit = () => {
-    if (isEditing) {
-      handleEditUnit(currentUnitId);
-    } else {
-      handleCreateUnit();
+  const handleSubmit = async () => {
+    try {
+      if (isEditing) {
+        await handleEditUnit(currentUnitId);
+        alert('Unit updated successfully!');
+      } else {
+        await handleCreateUnit();
+        alert('Unit created successfully!');
+      }
+      clearForm();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while saving the unit.');
     }
   };
-
+  
+  
   // Filter units by tier
   const filteredUnits = filterTier
     ? units.filter((unit) => unit.tier === filterTier)
@@ -169,6 +189,15 @@ const UnitManager = () => {
           <input type="number" value={unitSpeed} onChange={(e) => setUnitSpeed(e.target.value)} required />
         </div>
         <div className="form-group">
+          <label>Required Barracks Level</label>
+          <input
+            type="number"
+            value={barracksLevel}
+            onChange={(e) => setBarracksLevel(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
           <label>Image</label>
           <input type="file" onChange={(e) => setUnitImage(e.target.files[0])} />
         </div>
@@ -183,13 +212,14 @@ const UnitManager = () => {
           )}
         </div>
       </form>
-      <h3>Existing Units</h3>
-{/* Tier Filter */}
-<div className="tier-filter">
-        <label>Filter by Tier:</label>
+
+      {/* Tier Filter */}
+      <div className="tier-filter">
+        <label>Filter Units by Tier:</label>
         <select
           value={filterTier}
           onChange={(e) => setFilterTier(e.target.value)}
+          className="filter-select"
         >
           <option value="">All Tiers</option>
           <option value="Basic">Basic</option>
@@ -212,6 +242,7 @@ const UnitManager = () => {
             <th>Defense</th>
             <th>Health</th>
             <th>Speed</th>
+            <th>Barracks Level</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -234,6 +265,7 @@ const UnitManager = () => {
               <td>{unit.defense}</td>
               <td>{unit.health}</td>
               <td>{unit.speed}</td>
+              <td>{unit.barracksLevel}</td> 
               <td>
                 <button onClick={() => startEditing(unit)}>Edit</button>
                 <button onClick={() => handleDeleteUnit(unit._id)}>Delete</button>

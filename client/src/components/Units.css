@@ -28,13 +28,41 @@ body {
 
 .units-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr); 
   gap: 20px;
+  justify-items: center;
+}
+
+.tier-filters {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.tier-filters button {
+  margin: 0 10px;
+  padding: 10px 20px;
+  border: none;
+  background-color: var(--color-chamoisee);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.tier-filters button.active {
+  background-color: var(--color-midnight-green);
+}
+
+.tier-filters button:hover {
+  background-color: goldenrod;
 }
 
 .unit-wrapper {
-  position: relative;
+  width: 100%; 
+  max-width: 350px;
+  height: auto;
 }
+
 
 .unit-card {
   position: relative;
@@ -51,6 +79,8 @@ body {
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: solid 1px white;
+  height: 200px; 
+
 }
 
 .unit-card:hover {

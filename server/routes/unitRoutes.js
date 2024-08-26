@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const {
   getAllUnits,
+  getAvailableUnits,
   getUnitById,
   createUnit,
   updateUnit,
@@ -14,11 +15,12 @@ const {
 const { auth, authorizeRoles } = require('../middleware/auth');
 
 // Set up multer
-const storage = multer.memoryStorage(); // Adjust storage as needed (e.g., diskStorage)
+const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
 
 // Public Routes
 router.get('/', auth, getAllUnits);
+router.get('/available', auth, getAvailableUnits);
 router.get('/:id', auth, getUnitById);
 router.post('/purchase', auth, purchaseUnit);
 router.post('/assign', auth, assignUnit);

@@ -14,8 +14,17 @@ const Upgrades = ({ onUpgradePurchase }) => {
   const displayNames = {
     barracks: 'Barracks',
     wallFortifications: 'Wall Fortifications',
+    trainingGrounds: 'Training Grounds',
     goldProduction: 'Gold Production',
-    vault: 'Vault'
+    vault: 'Vault',
+    ancientStudies: 'Ancient Studies',
+  };
+
+  const formatBonus = (bonus, isPercentage) => {
+    if (isPercentage) {
+      return `${((bonus - 1) * 100).toFixed(2)}%`;
+    }
+    return bonus.toLocaleString(); // For non-percentage bonuses like gold production
   };
 
   useEffect(() => {
@@ -26,6 +35,7 @@ const Upgrades = ({ onUpgradePurchase }) => {
         // Fetch kingdom data
         const kingdomResponse = await axios.get(`/api/kingdoms/${user.kingdom._id}`);
         const fetchedKingdom = kingdomResponse.data;
+        console.log('Fetched Kingdom:', fetchedKingdom);
         setKingdom(fetchedKingdom);
 
         // Fetch upgrade details
@@ -46,25 +56,49 @@ const Upgrades = ({ onUpgradePurchase }) => {
       const details = {};
       for (let upgradeType of Object.keys(displayNames)) {
         const currentLevel = fetchedKingdom[upgradeType]?.level || (upgradeType === 'goldProduction' ? fetchedKingdom.goldProductionRate / 10 : 0);
-        const upgradeResponse = await axios.get(`/api/upgrades/next?upgradeType=${upgradeType}&level=${currentLevel}`);
-        details[upgradeType] = upgradeResponse.data;
+  
+        try {
+          const upgradeResponse = await axios.get(`/api/upgrades/next?upgradeType=${upgradeType}&level=${currentLevel}`);
+          details[upgradeType] = upgradeResponse.data;
+        } catch (err) {
+          // Handle max level scenario for 400 errors
+          if (err.response && err.response.status === 400) {
+            details[upgradeType] = null; // Mark it as max level
+          } else {
+            throw err; // Re-throw other errors
+          }
+        }
       }
+  
       setUpgradeDetails(details);
     } catch (error) {
       console.error('Error fetching upgrade details:', error);
       setError('Failed to fetch upgrade details.');
     }
   };
-
+  
   const handlePurchase = async (upgradeType) => {
     try {
       const response = await axios.post('/api/upgrades/purchase', { userId: user._id, upgradeType });
-      setKingdom(response.data); // Update local kingdom state
+      console.log('Purchase Response:', response.data);
+      
+      // Update the kingdom state immediately
+      const updatedKingdom = response.data;
+      setKingdom(updatedKingdom); // Update the kingdom state
       setInsufficientGold(null); // Reset insufficient gold state
       onUpgradePurchase(); // Trigger additional updates, including global state
-
-      // Fetch the updated upgrade details
-      fetchUpgradeDetails(response.data); // Pass the updated kingdom data
+  
+      // Update upgradeDetails optimistically
+      const nextUpgradeResponse = await axios.get(`/api/upgrades/next?upgradeType=${upgradeType}&level=${updatedKingdom[upgradeType]?.level}`);
+      setUpgradeDetails((prevDetails) => ({
+        ...prevDetails,
+        [upgradeType]: nextUpgradeResponse.data,
+      }));
+  
+      // Show feedback if a new unit is unlocked
+      if (upgradeType === 'barracks' && response.data.unlockedUnit) {
+        alert(`Congrats! You've unlocked the ${response.data.unlockedUnit.name}. You can now recruit this unit.`);
+      }
     } catch (error) {
       if (error.response && error.response.status === 400 && error.response.data.requiredGold) {
         setInsufficientGold({
@@ -77,6 +111,7 @@ const Upgrades = ({ onUpgradePurchase }) => {
       }
     }
   };
+  
 
   if (loading) {
     return <div>Loading...</div>;
@@ -97,6 +132,7 @@ const Upgrades = ({ onUpgradePurchase }) => {
         {Object.keys(displayNames).map((upgradeType) => {
           const currentLevel = kingdom[upgradeType]?.level || (upgradeType === 'goldProduction' ? kingdom.goldProductionRate / 10 : 0);
           const currentUpgrade = upgradeDetails[upgradeType];
+
           return (
             <div key={upgradeType} className="upgrade-card" style={{ backgroundImage: `url('/images/${upgradeType}.png')` }}>
               <h3>{`${displayNames[upgradeType]} Upgrade`}</h3>
@@ -105,8 +141,12 @@ const Upgrades = ({ onUpgradePurchase }) => {
                 <p>Max Level</p>
               ) : currentUpgrade ? (
                 <>
-                  <p>Cost: {currentUpgrade.cost} Gold</p>
-                  <p>{upgradeType === 'goldProduction' ? `Gold Production Bonus: ${currentUpgrade.bonus}` : `Bonus: ${currentUpgrade.bonus}`}</p>
+                  <p>Cost: {currentUpgrade.cost || 'N/A'} Gold</p>
+                  {upgradeType === 'barracks' && currentUpgrade.nextUnlock ? (
+                    <p>Next Unit Unlock: {currentUpgrade.nextUnlock}</p>
+                  ) : (
+                    <p>Bonus: {formatBonus(currentUpgrade.bonus, ['wallFortifications', 'trainingGrounds', 'ancientStudies'].includes(upgradeType))}</p>
+                  )}
                   <button onClick={() => handlePurchase(upgradeType)}>Purchase</button>
                 </>
               ) : (
